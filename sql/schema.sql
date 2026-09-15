@@ -1,0 +1,149 @@
+-- ============================================================
+-- 莲花社区服务点 · 活动系统 数据库初始化脚本
+-- 用法：在 Supabase 控制台 → SQL Editor → 粘贴本文件全文 → Run
+-- 说明：新建独立 Supabase 项目后，一次性执行即可完成建表 + RLS + Storage
+-- ============================================================
+
+create extension if not exists pgcrypto;
+
+-- ---------- 1. 居民档案 ----------
+create table if not exists public.residents (
+  id uuid primary key default gen_random_uuid(),
+  pin text not null check (pin ~ '^[0-9]{4}$'),   -- 手机号后四位
+  name text not null,
+  created_at timestamptz not null default now(),
+  unique (pin, name)
+);
+
+-- ---------- 2. 活动 ----------
+create table if not exists public.activities (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  date date,
+  time text,                 -- 时段，如「上午 9:30 - 11:00」
+  location text,
+  description text,
+  registration_enabled boolean not null default false,
+  registration_deadline timestamptz,
+  capacity int,              -- 名额上限，可空表示不限
+  is_current boolean not null default false,   -- 是否为「本场活动」
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- 3. 活动报名 ----------
+create table if not exists public.registrations (
+  id uuid primary key default gen_random_uuid(),
+  activity_id uuid not null references public.activities(id) on delete cascade,
+  resident_id uuid not null references public.residents(id) on delete cascade,
+  registered_at timestamptz not null default now(),
+  unique (activity_id, resident_id)
+);
+
+-- ---------- 4. 签到记录 ----------
+create table if not exists public.checkins (
+  id uuid primary key default gen_random_uuid(),
+  activity_id uuid not null references public.activities(id) on delete cascade,
+  resident_id uuid not null references public.residents(id) on delete cascade,
+  checked_in_by text not null default 'self',  -- 'self'=本人 / 工作人员 uid=帮签
+  checked_in_at timestamptz not null default now(),
+  unique (activity_id, resident_id)
+);
+
+-- ---------- 5. 活动照片 ----------
+create table if not exists public.photos (
+  id uuid primary key default gen_random_uuid(),
+  activity_id uuid not null references public.activities(id) on delete cascade,
+  resident_id uuid references public.residents(id) on delete cascade,  -- 大合照为 NULL
+  type text not null check (type in ('personal','group')),
+  storage_path text not null,
+  uploaded_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- 索引 ----------
+create index if not exists idx_residents_pin on public.residents(pin);
+create index if not exists idx_registrations_activity on public.registrations(activity_id);
+create index if not exists idx_registrations_resident on public.registrations(resident_id);
+create index if not exists idx_checkins_activity on public.checkins(activity_id);
+create index if not exists idx_checkins_resident on public.checkins(resident_id);
+create index if not exists idx_photos_activity on public.photos(activity_id);
+create index if not exists idx_photos_resident on public.photos(resident_id);
+
+-- ============================================================
+-- RLS（Row Level Security）
+-- 角色约定：
+--   anon          = 居民端（无账号，靠「后四位+姓名」识别）
+--   authenticated = 工作人员（Supabase 邮箱+密码登录）
+-- ============================================================
+alter table public.residents enable row level security;
+alter table public.activities enable row level security;
+alter table public.registrations enable row level security;
+alter table public.checkins enable row level security;
+alter table public.photos enable row level security;
+
+-- residents：anon 读（识别身份）+ 插（首次建档）；工作人员全权
+create policy "residents_anon_select" on public.residents for select to anon using (true);
+create policy "residents_anon_insert" on public.residents for insert to anon with check (true);
+create policy "residents_auth_all"   on public.residents for all to authenticated using (true) with check (true);
+
+-- activities：anon 读；工作人员全权
+create policy "activities_anon_select" on public.activities for select to anon using (true);
+create policy "activities_auth_all"    on public.activities for all to authenticated using (true) with check (true);
+
+-- registrations：anon 读 + 插（报名）；工作人员全权
+create policy "registrations_anon_select" on public.registrations for select to anon using (true);
+create policy "registrations_anon_insert" on public.registrations for insert to anon with check (true);
+create policy "registrations_auth_all"    on public.registrations for all to authenticated using (true) with check (true);
+
+-- checkins：anon 读 + 仅可本人签到（checked_in_by 必须为 'self'）；工作人员全权（帮签）
+create policy "checkins_anon_select"     on public.checkins for select to anon using (true);
+create policy "checkins_anon_insert_self" on public.checkins for insert to anon with check (checked_in_by = 'self');
+create policy "checkins_auth_all"        on public.checkins for all to authenticated using (true) with check (true);
+
+-- photos：anon 只能读大合照；个人照通过 security definer 函数按「后四位+姓名」精确获取；工作人员全权
+drop policy if exists "photos_anon_select" on public.photos;
+drop policy if exists "photos_anon_select_group" on public.photos;
+create policy "photos_anon_select_group" on public.photos for select to anon using (type = 'group');
+create policy "photos_auth_all"    on public.photos for all to authenticated using (true) with check (true);
+
+-- 居民「我的个人照」查询函数：凭 后四位+姓名 精确匹配，绕过 RLS 只返回本人个人照
+create or replace function public.get_my_personal_photos(p_pin text, p_name text)
+returns table (id uuid, storage_path text, activity_title text, created_at timestamptz)
+language sql security definer set search_path = public stable
+as $$
+  select p.id, p.storage_path, a.title, p.created_at
+  from public.photos p
+  join public.residents r on r.id = p.resident_id
+  left join public.activities a on a.id = p.activity_id
+  where r.pin = p_pin and r.name = p_name and p.type = 'personal'
+  order by p.created_at desc;
+$$;
+grant execute on function public.get_my_personal_photos(text, text) to anon;
+
+-- ============================================================
+-- Storage：活动照片 bucket（public，文件名用随机 uuid 防枚举）
+-- ============================================================
+insert into storage.buckets (id, name, public)
+values ('activity-photos', 'activity-photos', true)
+on conflict (id) do nothing;
+
+create policy "photos_bucket_public_read" on storage.objects
+  for select using (bucket_id = 'activity-photos');
+
+create policy "photos_bucket_auth_insert" on storage.objects
+  for insert to authenticated with check (bucket_id = 'activity-photos');
+
+create policy "photos_bucket_auth_update" on storage.objects
+  for update to authenticated using (bucket_id = 'activity-photos');
+
+create policy "photos_bucket_auth_delete" on storage.objects
+  for delete to authenticated using (bucket_id = 'activity-photos');
+
+-- ============================================================
+-- 可选：预置一个示例活动，便于首次打开页面即可演示
+-- ============================================================
+insert into public.activities (title, date, time, location, description, registration_enabled, is_current)
+values ('长者健康养生讲座', current_date, '上午 9:30 - 11:00', '莲花社区活动中心四楼',
+        '欢迎各位街坊参加本场养生讲座，请先在首页报名，当天到场后签到。', true, true)
+on conflict do nothing;

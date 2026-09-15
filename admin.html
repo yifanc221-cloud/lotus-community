@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<title>莲花社区服务点 · 工作人员后台</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>工作人员后台</b><span><a href="index.html">返回首页</a></span></div>
+  </div>
+</header>
+
+<!-- 登录后顶部栏 -->
+<div class="admin-bar" id="adminBar" style="display:none">
+  <span class="u-mail" id="staffMail"></span>
+  <button class="btn btn-sm btn-line" id="logoutBtn" style="color:#fff;border-color:#5F5E5A">退出登录</button>
+</div>
+
+<!-- 登录 -->
+<main class="wrap login-wrap" id="loginView">
+  <section class="card">
+    <div class="card-hd"><span class="dot"></span><h2>工作人员登录</h2></div>
+    <div class="field">
+      <label for="loginEmail">邮箱</label>
+      <input id="loginEmail" class="input" type="email" placeholder="you@example.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="loginPass">密码</label>
+      <input id="loginPass" class="input" type="password" placeholder="请输入密码" autocomplete="current-password">
+    </div>
+    <button id="loginBtn" class="btn btn-primary btn-block btn-lg">登录</button>
+    <p class="hint center mt8">账号由 Supabase Auth 创建（Dashboard → Authentication → Users）。</p>
+  </section>
+</main>
+
+<!-- 后台主体 -->
+<main id="adminView" style="display:none">
+  <div class="tabs" id="tabs">
+    <button data-p="pAct" class="on">活动管理</button>
+    <button data-p="pReg">报名管理</button>
+    <button data-p="pChk">签到管理</button>
+    <button data-p="pPho">照片管理</button>
+    <button data-p="pStat">数据看板</button>
+    <button data-p="pArchive">存档导出</button>
+  </div>
+
+  <div class="wrap">
+    <!-- 活动管理 -->
+    <section class="panel on" id="pAct">
+      <div class="toolbar">
+        <button class="btn btn-primary" id="newActBtn">＋ 新建活动</button>
+      </div>
+      <div id="actAdminList"></div>
+    </section>
+
+    <!-- 报名管理 -->
+    <section class="panel" id="pReg">
+      <div class="toolbar">
+        <select class="select" id="regActSel"></select>
+        <button class="btn btn-line" id="regExport">导出名单</button>
+      </div>
+      <div id="regAdminList"></div>
+    </section>
+
+    <!-- 签到管理 -->
+    <section class="panel" id="pChk">
+      <div class="toolbar">
+        <select class="select" id="chkActSel"></select>
+        <button class="btn btn-line" id="chkExport">导出名单</button>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="dot"></span><h2>帮居民签到</h2></div>
+        <p class="hint">居民不便自己操作时，工作人员可在此代签（需先确认居民身份）。</p>
+        <div class="field mt14">
+          <label for="chkPin">手机号后四位</label>
+          <input id="chkPin" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
+        </div>
+        <div id="chkPeople"></div>
+        <div class="field" id="chkNameField" style="display:none">
+          <label for="chkName">居民姓名（首次登记）</label>
+          <input id="chkName" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
+        </div>
+        <button class="btn btn-teal btn-block btn-lg" id="chkDoBtn">帮这位居民签到</button>
+      </div>
+      <div class="card mt8">
+        <div class="card-hd"><span class="dot"></span><h2>签到名单</h2></div>
+        <div id="chkAdminList"></div>
+      </div>
+    </section>
+
+    <!-- 照片管理 -->
+    <section class="panel" id="pPho">
+      <div class="toolbar">
+        <select class="select" id="phoActSel"></select>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="dot"></span><h2>上传照片</h2></div>
+        <div class="field">
+          <label>照片类型</label>
+          <div class="btn-row" style="margin-top:0">
+            <button class="btn btn-line" id="typeGroupBtn">大合照</button>
+            <button class="btn btn-line on" id="typePersonalBtn" style="background:var(--coral-x);color:var(--coral);border-color:var(--coral-l)">个人照</button>
+          </div>
+        </div>
+        <div class="field" id="phoResidentField">
+          <label for="phoPin">关联居民（个人照）</label>
+          <input id="phoPin" class="input" type="tel" inputmode="numeric" maxlength="4" placeholder="输入居民手机号后四位" autocomplete="off">
+          <div id="phoPeople" class="mt8"></div>
+        </div>
+        <div class="field">
+          <label>选择图片（可多选）</label>
+          <input id="phoFiles" type="file" accept="image/*" multiple>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" id="phoUploadBtn">上传照片</button>
+      </div>
+      <div class="card mt8">
+        <div class="card-hd"><span class="dot"></span><h2>已上传照片</h2></div>
+        <div id="phoList"></div>
+      </div>
+    </section>
+
+    <!-- 数据看板 -->
+    <section class="panel" id="pStat">
+      <div class="card">
+        <div class="card-hd"><span class="dot"></span><h2>服务数据</h2></div>
+        <div style="display:flex;gap:8px;text-align:center;margin-bottom:6px">
+          <div style="flex:1"><div style="font-size:28px;font-weight:800;color:var(--coral)" id="sTotal">—</div><div class="muted">累计服务人次</div></div>
+          <div style="flex:1"><div style="font-size:28px;font-weight:800;color:var(--teal)" id="sPeople">—</div><div class="muted">登记长者</div></div>
+          <div style="flex:1"><div style="font-size:28px;font-weight:800;color:var(--amber)" id="sActs">—</div><div class="muted">活动场次</div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-title">各月签到人次</div>
+        <div id="sChart"></div>
+      </div>
+    </section>
+
+    <!-- 存档导出 -->
+    <section class="panel" id="pArchive">
+      <div class="card">
+        <div class="card-hd"><span class="dot"></span><h2>数据存档</h2></div>
+        <p class="hint">把后台记录导出成表格（CSV），可打印归档、上报或长期留存。</p>
+        <div class="arch-item">
+          <div><b>居民档案总表</b><div class="muted">姓名、后四位、建档时间、累计签到·积分、累计报名</div></div>
+          <button class="btn btn-line" id="archResidents">导出</button>
+        </div>
+        <div class="arch-item">
+          <div><b>签到记录总表</b><div class="muted">所有活动的签到明细（含本人/代签）</div></div>
+          <button class="btn btn-line" id="archCheckins">导出</button>
+        </div>
+        <div class="arch-item">
+          <div><b>报名记录总表</b><div class="muted">所有活动的报名明细</div></div>
+          <button class="btn btn-line" id="archRegs">导出</button>
+        </div>
+        <div class="arch-item">
+          <div><b>活动汇总表</b><div class="muted">每场活动的报名人数 / 签到人数</div></div>
+          <button class="btn btn-line" id="archActs">导出</button>
+        </div>
+        <div class="arch-item">
+          <div><b>照片清单</b><div class="muted">已上传照片的档案（类型 / 关联居民 / 文件名）</div></div>
+          <button class="btn btn-line" id="archPhotos">导出</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- 活动编辑弹窗 -->
+<div class="modal-mask" id="actMask" style="display:none">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="actModalTitle">新建活动</h3><button class="modal-close" id="actClose">✕</button></div>
+    <div class="field"><label>活动名称</label><input id="aTitle" class="input" type="text" placeholder="如：长者健康养生讲座"></div>
+    <div class="field"><label>日期</label><input id="aDate" class="input" type="date"></div>
+    <div class="field"><label>时段</label><input id="aTime" class="input" type="text" placeholder="如：上午 9:30 - 11:00"></div>
+    <div class="field"><label>地点</label><input id="aLocation" class="input" type="text" placeholder="如：莲花社区活动中心四楼"></div>
+    <div class="field"><label>活动介绍</label><textarea id="aDesc" class="input" placeholder="可选"></textarea></div>
+    <div class="field"><label>报名名额（留空 = 不限）</label><input id="aCapacity" class="input" type="number" min="0" placeholder="不限"></div>
+    <div class="field"><label>报名截止时间</label><input id="aDeadline" class="input" type="datetime-local"></div>
+    <div class="field" style="display:flex;align-items:center;gap:10px">
+      <input id="aRegOn" type="checkbox" style="width:20px;height:20px">
+      <label for="aRegOn" style="margin:0;font-size:15px">开放报名</label>
+    </div>
+    <button id="actSave" class="btn btn-primary btn-block btn-lg">保存</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

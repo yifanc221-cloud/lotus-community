@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D85A30">
+<title>莲花社区服务点 · 长者活动签到</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-nav">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag">
+      <b>长者活动签到</b>
+      <a href="index.html">← 返回首页</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+
+  <!-- 当前活动 -->
+  <section class="card" id="activityCard">
+    <div class="card-hd"><span class="dot"></span><h2>本场活动</h2></div>
+    <div id="activityInfo"><span class="muted">加载中…</span></div>
+  </section>
+
+  <!-- 签到流程 -->
+  <section class="card" id="stepPin">
+    <div class="card-hd"><span class="dot"></span><h2>长者活动签到</h2></div>
+    <p class="hint" style="font-size:15px">输入您手机号码的<b>最后四位数字</b>，即可完成签到。</p>
+    <div class="field mt14">
+      <input id="pinInput" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
+    </div>
+    <button id="pinNext" class="btn btn-primary btn-block btn-lg">确认签到</button>
+    <button class="vbtn" id="vbtnPin" type="button"><span class="vico">🔊</span>听语音</button>
+    <p class="hint center mt8">本页只记录手机号后四位，不收集完整手机号码。</p>
+  </section>
+
+  <!-- 多人点选 -->
+  <section class="card" id="stepChoose" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2>请问您是</h2></div>
+    <p class="hint">该后四位对应多位街坊，请点选您的名字。</p>
+    <div id="chooseList" class="mt14"></div>
+    <button id="chooseBack" class="btn btn-line btn-block mt14">都不是我，返回重输</button>
+    <button class="vbtn" id="vbtnPick" type="button"><span class="vico">🔊</span>听语音</button>
+  </section>
+
+  <!-- 首次建档 -->
+  <section class="card" id="stepNew" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2>第一次来，欢迎您</h2></div>
+    <p class="hint">请填写您的姓名，填一次就好，以后签到就不用再填了。</p>
+    <div class="field mt14">
+      <label for="nameInput">您的姓名</label>
+      <input id="nameInput" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
+    </div>
+    <button id="newSubmit" class="btn btn-primary btn-block btn-lg">确认并签到</button>
+    <button id="newBack" class="btn btn-line btn-block mt8">返回重输</button>
+    <button class="vbtn" id="vbtnName" type="button"><span class="vico">🔊</span>听语音</button>
+  </section>
+
+  <!-- 签到成功 -->
+  <section class="card" id="stepDone" style="display:none">
+    <div class="center">
+      <div class="done-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+      </div>
+      <div class="done-name" id="doneName"></div>
+      <p class="done-sub" id="doneTime"></p>
+
+      <div class="pts-card">
+        <div class="pts-head">
+          <span>我的活动积分</span>
+          <span class="pts-plus" id="ptsPlus" style="display:none">+1 积分</span>
+        </div>
+        <div class="pts-value"><b id="ptsTotal">0</b><span>积分</span></div>
+        <div class="pts-track"><div class="pts-fill" id="ptsFill"></div></div>
+        <div class="pts-foot">
+          <span id="ptsCurrent"></span>
+          <span id="ptsNext"></span>
+        </div>
+      </div>
+
+      <p class="pts-note">🎁 活动积分将在<b>年终统一兑换礼品</b></p>
+      <button class="vbtn" id="vbtnDone" type="button"><span class="vico">🔊</span>听语音</button>
+      <a href="index.html" class="btn btn-ghost btn-block btn-lg mt14">返回首页</a>
+    </div>
+  </section>
+
+  <!-- 统计 -->
+  <section class="card">
+    <div class="card-hd"><span class="dot"></span><h2>本场情况</h2></div>
+    <div style="display:flex;gap:8px;text-align:center">
+      <div style="flex:1"><div style="font-size:26px;font-weight:800;color:var(--coral)" id="statToday">—</div><div class="muted">本场已签到</div></div>
+      <div style="flex:1"><div style="font-size:26px;font-weight:800;color:var(--teal)" id="statTotal">—</div><div class="muted">累计服务人次</div></div>
+      <div style="flex:1"><div style="font-size:26px;font-weight:800;color:var(--amber)" id="statPeople">—</div><div class="muted">已登记长者</div></div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="ico">🏠</span>首页</a>
+  <a href="checkin.html" class="on"><span class="ico">✅</span>签到</a>
+  <a href="mine.html"><span class="ico">👤</span>我的</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
+<script src="js/checkin.js"></script>
+</body>
+</html>

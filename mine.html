@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D85A30">
+<title>莲花社区服务点 · 我的活动</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-nav">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>我的活动</b><span id="whoami" style="display:none"></span></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 身份识别 -->
+  <section class="card" id="identifyCard">
+    <div class="card-hd"><span class="dot"></span><h2>查看我的活动</h2></div>
+    <p class="hint">输入手机号后四位，即可查看您的活动照片与记录。</p>
+    <div class="field mt14">
+      <label for="mPin">手机号后四位</label>
+      <input id="mPin" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
+    </div>
+    <div id="mPick" class="mt8" style="display:none"></div>
+    <button id="identifyBtn" class="btn btn-primary btn-block btn-lg">查看</button>
+  </section>
+
+  <!-- 识别结果 -->
+  <section id="result" style="display:none">
+    <section class="card">
+      <div class="card-hd"><span class="dot"></span><h2>我的活动积分</h2></div>
+      <div class="pts-card">
+        <div class="pts-head">
+          <span>累计参加活动</span>
+          <span class="pts-plus" id="myPtsPlus" style="display:none">+1 积分</span>
+        </div>
+        <div class="pts-value"><b id="myPtsTotal">0</b><span>积分</span></div>
+        <div class="pts-track"><div class="pts-fill" id="myPtsFill"></div></div>
+        <div class="pts-foot">
+          <span id="myPtsCurrent"></span>
+          <span id="myPtsNext"></span>
+        </div>
+      </div>
+      <p class="pts-note">🎁 活动积分将在<b>年终统一兑换礼品</b></p>
+    </section>
+
+    <section class="card">
+      <div class="card-hd"><span class="dot"></span><h2>我的活动照片</h2></div>
+      <p class="section-tip">工作人员为您上传的个人照片会显示在这里。</p>
+      <div id="myPhotos"><div class="empty"><span class="em-ico">🖼️</span>暂无个人照片</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-hd"><span class="dot"></span><h2>活动大合照</h2></div>
+      <p class="section-tip">所有活动的大合照，大家都看得到。</p>
+      <div id="groupPhotos"><div class="empty"><span class="em-ico">📸</span>暂无大合照</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-hd"><span class="dot"></span><h2>我的报名</h2></div>
+      <div id="myRegs"><div class="empty"><span class="em-ico">📋</span>暂无报名记录</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-hd"><span class="dot"></span><h2>我的签到</h2></div>
+      <div id="myCheckins"><div class="empty"><span class="em-ico">✅</span>暂无签到记录</div></div>
+    </section>
+
+    <button id="switchBtn" class="btn btn-line btn-block">使用另一个账号登录</button>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="ico">🏠</span>首页</a>
+  <a href="checkin.html"><span class="ico">✅</span>签到</a>
+  <a href="mine.html" class="on"><span class="ico">👤</span>我的</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
+<script src="js/mine.js"></script>
+</body>
+</html>

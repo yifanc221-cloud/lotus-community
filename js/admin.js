@@ -1,0 +1,498 @@
+// ============================================================
+// 工作人员后台：登录 + 活动/报名/签到/照片/看板
+// ============================================================
+(function () {
+  var sb = getSupabase();
+  var $ = function (id) { return document.getElementById(id); }
+  var staff = null;
+  var editingActId = null;
+  var photoType = 'personal';       // 'personal' | 'group'
+  var photoResidentId = null;       // 个人照关联居民
+  var chkSelected = null;           // 帮签选中的居民
+
+  // ================= 认证 =================
+  function showLogin() {
+    $('loginView').style.display = 'block';
+    $('adminView').style.display = 'none';
+    $('adminBar').style.display = 'none';
+  }
+  function showAdmin() {
+    $('loginView').style.display = 'none';
+    $('adminView').style.display = 'block';
+    $('adminBar').style.display = 'flex';
+    $('staffMail').textContent = staff.email;
+    refreshAll();
+  }
+
+  async function initAuth() {
+    if (!sb) { toast('未连接云端', 'error'); return; }
+    var { data } = await sb.auth.getSession();
+    if (data && data.session) { staff = data.session.user; showAdmin(); } else { showLogin(); }
+  }
+
+  $('loginBtn').addEventListener('click', async function () {
+    var email = $('loginEmail').value.trim();
+    var pass = $('loginPass').value;
+    if (!email || !pass) { toast('请输入邮箱和密码', 'error'); return; }
+    var { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (error) { toast('登录失败：' + (error.message || '邮箱或密码错误'), 'error'); return; }
+    staff = data.user;
+    showAdmin();
+  });
+  $('loginPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('loginBtn').click(); });
+
+  $('logoutBtn').addEventListener('click', async function () {
+    await sb.auth.signOut();
+    staff = null;
+    showLogin();
+    $('loginEmail').value = ''; $('loginPass').value = '';
+  });
+
+  // ================= Tab 切换 =================
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-p]');
+    if (!b) return;
+    switchPanel(b.getAttribute('data-p'));
+  });
+
+  function switchPanel(p) {
+    document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-p') === p); });
+    document.querySelectorAll('.panel').forEach(function (x) { x.classList.toggle('on', x.id === p); });
+  }
+
+  // ================= 活动管理 =================
+  async function loadActAdmin() {
+    var { data, error } = await sb.from('activities').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    data = data || [];
+    if (!data.length) { $('actAdminList').innerHTML = '<div class="empty">暂无活动，点右上「＋新建活动」创建</div>'; return; }
+    var html = '';
+    data.forEach(function (a) {
+      html +=
+        '<div class="act-item">' +
+          '<div class="act-title">' + esc(a.title) +
+            (a.is_current ? ' <span class="tag tag-coral">本场</span>' : '') +
+            (a.registration_enabled ? ' <span class="tag tag-teal">报名中</span>' : '') +
+          '</div>' +
+          '<div class="act-meta">' + esc(fmtDateFull(a.date) || '未定日期') + (a.time ? ' · ' + esc(a.time) : '') + (a.location ? ' · ' + esc(a.location) : '') +
+            (a.capacity ? ' · 名额 ' + a.capacity : '') + '</div>' +
+          '<div class="act-foot" style="flex-wrap:wrap">' +
+            '<button class="btn btn-sm btn-line" data-cur="' + a.id + '">' + (a.is_current ? '✓ 本场' : '设为本场') + '</button>' +
+            '<button class="btn btn-sm btn-line" data-edit="' + a.id + '">编辑</button>' +
+            '<button class="btn btn-sm btn-line" data-del="' + a.id + '" style="color:#C0392B">删除</button>' +
+          '</div>' +
+        '</div>';
+    });
+    $('actAdminList').innerHTML = html;
+  }
+
+  $('actAdminList').addEventListener('click', async function (e) {
+    var id = e.target.getAttribute('data-cur');
+    if (id) {
+      await sb.from('activities').update({ is_current: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      await sb.from('activities').update({ is_current: true }).eq('id', id);
+      toast('已设为本场活动', 'success'); loadActAdmin(); refreshSelects(); return;
+    }
+    id = e.target.getAttribute('data-edit');
+    if (id) { openActEditor(id); return; }
+    id = e.target.getAttribute('data-del');
+    if (id) {
+      if (!confirm('确定删除该活动？相关报名、签到、照片将一并删除。')) return;
+      await sb.from('activities').delete().eq('id', id);
+      toast('已删除', 'success'); loadActAdmin(); refreshSelects(); return;
+    }
+  });
+
+  function openActEditor(id) {
+    editingActId = id || null;
+    $('actModalTitle').textContent = id ? '编辑活动' : '新建活动';
+    $('aTitle').value = ''; $('aDate').value = ''; $('aTime').value = '';
+    $('aLocation').value = ''; $('aDesc').value = ''; $('aCapacity').value = ''; $('aDeadline').value = '';
+    $('aRegOn').checked = false;
+    if (id) {
+      sb.from('activities').select('*').eq('id', id).maybeSingle().then(function (r) {
+        var a = r.data; if (!a) return;
+        $('aTitle').value = a.title || ''; $('aDate').value = a.date || ''; $('aTime').value = a.time || '';
+        $('aLocation').value = a.location || ''; $('aDesc').value = a.description || ''; $('aCapacity').value = a.capacity || '';
+        $('aDeadline').value = a.registration_deadline ? a.registration_deadline.slice(0, 16) : '';
+        $('aRegOn').checked = !!a.registration_enabled;
+      });
+    }
+    $('actMask').style.display = 'flex';
+  }
+
+  $('newActBtn').addEventListener('click', function () { openActEditor(null); });
+  $('actClose').addEventListener('click', function () { $('actMask').style.display = 'none'; });
+  $('actMask').addEventListener('click', function (e) { if (e.target === this) this.style.display = 'none'; });
+
+  $('actSave').addEventListener('click', async function () {
+    var title = $('aTitle').value.trim();
+    if (!title) { toast('请填写活动名称', 'error'); return; }
+    var payload = {
+      title: title,
+      date: $('aDate').value || null,
+      time: $('aTime').value.trim() || null,
+      location: $('aLocation').value.trim() || null,
+      description: $('aDesc').value.trim() || null,
+      capacity: $('aCapacity').value ? parseInt($('aCapacity').value, 10) : null,
+      registration_deadline: $('aDeadline').value ? new Date($('aDeadline').value).toISOString() : null,
+      registration_enabled: $('aRegOn').checked,
+      created_by: staff.id
+    };
+    if (editingActId) {
+      var { error } = await sb.from('activities').update(payload).eq('id', editingActId);
+      if (error) { toast('保存失败', 'error'); return; }
+    } else {
+      var { error: e2 } = await sb.from('activities').insert(payload);
+      if (e2) { toast('创建失败', 'error'); return; }
+    }
+    toast('已保存', 'success');
+    $('actMask').style.display = 'none';
+    loadActAdmin(); refreshSelects();
+  });
+
+  // ================= 选择器 =================
+  async function refreshSelects() {
+    var { data } = await sb.from('activities').select('id,title,is_current').order('created_at', { ascending: false });
+    data = data || [];
+    var opts = data.map(function (a) { return '<option value="' + a.id + '">' + esc(a.title) + (a.is_current ? '（本场）' : '') + '</option>'; }).join('');
+    $('regActSel').innerHTML = opts;
+    $('chkActSel').innerHTML = opts;
+    $('phoActSel').innerHTML = opts;
+    loadRegAdmin(); loadChkAdmin(); loadPhoList();
+  }
+
+  // ================= 报名管理 =================
+  async function loadRegAdmin() {
+    var aid = $('regActSel').value;
+    if (!aid) { $('regAdminList').innerHTML = '<div class="empty">请先创建活动</div>'; return; }
+    var { data, error } = await sb.from('registrations')
+      .select('id,registered_at,residents(name,pin)')
+      .eq('activity_id', aid).order('registered_at', { ascending: true });
+    if (error) { console.error(error); return; }
+    data = data || [];
+    if (!data.length) { $('regAdminList').innerHTML = '<div class="empty">暂无报名</div>'; return; }
+    var html = '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>报名时间</th></tr>';
+    data.forEach(function (r, i) {
+      var p = r.residents || {};
+      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.registered_at)) + '</td></tr>';
+    });
+    html += '</table>';
+    $('regAdminList').innerHTML = html;
+  }
+
+  $('regActSel').addEventListener('change', loadRegAdmin);
+  $('regExport').addEventListener('click', async function () {
+    var aid = $('regActSel').value;
+    var { data } = await sb.from('registrations').select('registered_at,residents(name,pin)').eq('activity_id', aid).order('registered_at', { ascending: true });
+    var { data: act } = await sb.from('activities').select('title').eq('id', aid).maybeSingle();
+    var rows = [['姓名', '手机号后四位', '报名时间']];
+    (data || []).forEach(function (r) { rows.push([(r.residents || {}).name, (r.residents || {}).pin, fmtTime(r.registered_at)]); });
+    exportCSV('报名名单_' + (act ? act.title : '') + '.csv', rows);
+  });
+
+  // ================= 签到管理 =================
+  async function loadChkAdmin() {
+    var aid = $('chkActSel').value;
+    if (!aid) { $('chkAdminList').innerHTML = '<div class="empty">请先创建活动</div>'; return; }
+    var { data, error } = await sb.from('checkins')
+      .select('id,checked_in_at,checked_in_by,residents(name,pin)')
+      .eq('activity_id', aid).order('checked_in_at', { ascending: true });
+    if (error) { console.error(error); return; }
+    data = data || [];
+    if (!data.length) { $('chkAdminList').innerHTML = '<div class="empty">暂无签到</div>'; return; }
+    var html = '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>签到时间</th><th>方式</th></tr>';
+    data.forEach(function (r, i) {
+      var p = r.residents || {};
+      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.checked_in_at)) + '</td><td>' + (r.checked_in_by === 'self' ? '本人' : '代签') + '</td></tr>';
+    });
+    html += '</table>';
+    $('chkAdminList').innerHTML = html;
+  }
+
+  $('chkActSel').addEventListener('change', loadChkAdmin);
+  $('chkExport').addEventListener('click', async function () {
+    var aid = $('chkActSel').value;
+    var { data } = await sb.from('checkins').select('checked_in_at,checked_in_by,residents(name,pin)').eq('activity_id', aid).order('checked_in_at', { ascending: true });
+    var { data: act } = await sb.from('activities').select('title').eq('id', aid).maybeSingle();
+    var rows = [['姓名', '手机号后四位', '签到时间', '方式']];
+    (data || []).forEach(function (r) { rows.push([(r.residents || {}).name, (r.residents || {}).pin, fmtTime(r.checked_in_at), r.checked_in_by === 'self' ? '本人' : '代签']); });
+    exportCSV('签到名单_' + (act ? act.title : '') + '.csv', rows);
+  });
+
+  // 帮签：输入后四位查人
+  $('chkPin').addEventListener('input', async function () {
+    var pin = this.value.trim();
+    chkSelected = null;
+    $('chkNameField').style.display = 'none';
+    if (!validPin(pin)) { $('chkPeople').innerHTML = ''; return; }
+    var list = await findResidentsByPin(pin);
+    if (list === null) return;
+    if (list.length === 0) {
+      $('chkPeople').innerHTML = '<p class="hint">未找到记录，首次登记请填写姓名。</p>';
+      $('chkNameField').style.display = 'block';
+    } else if (list.length === 1) {
+      chkSelected = list[0];
+      $('chkPeople').innerHTML = '<p class="hint" style="color:var(--teal)">将为 <b>' + esc(list[0].name) + '</b> 签到</p>';
+    } else {
+      $('chkPeople').innerHTML = '<p class="hint">请选择居民：</p>' + list.map(function (r) {
+        return '<button class="btn btn-line btn-block chk-person" style="margin-bottom:6px" data-id="' + r.id + '">' + esc(r.name) + '</button>';
+      }).join('');
+    }
+  });
+  $('chkPeople').addEventListener('click', function (e) {
+    var b = e.target.closest('.chk-person');
+    if (!b) return;
+    chkSelected = { id: b.getAttribute('data-id'), name: b.textContent };
+    $('chkPeople').innerHTML = '<p class="hint" style="color:var(--teal)">将为 <b>' + esc(b.textContent) + '</b> 签到</p>';
+  });
+
+  $('chkDoBtn').addEventListener('click', async function () {
+    var aid = $('chkActSel').value;
+    if (!aid) { toast('请先创建活动', 'error'); return; }
+    var pin = $('chkPin').value.trim();
+    if (!validPin(pin)) { toast('请输入居民手机号后四位', 'error'); return; }
+
+    var resident = chkSelected;
+    if (!resident) {
+      var name = $('chkName').value.trim();
+      if (!name) { toast('请输入居民姓名', 'error'); return; }
+      resident = await ensureResident(pin, name);
+      if (!resident) { toast('建档失败', 'error'); return; }
+    }
+
+    var { data: dup } = await sb.from('checkins').select('id').eq('activity_id', aid).eq('resident_id', resident.id).maybeSingle();
+    if (dup) { toast('该居民已签到过本场活动', 'error'); return; }
+
+    // 本场活动若开放报名，需先核对是否已报名；未报名则二次确认
+    var { data: actInfo } = await sb.from('activities').select('registration_enabled').eq('id', aid).maybeSingle();
+    if (actInfo && actInfo.registration_enabled) {
+      var { data: reg } = await sb.from('registrations').select('id').eq('activity_id', aid).eq('resident_id', resident.id).maybeSingle();
+      if (!reg && !confirm('该居民尚未报名本场活动，仍要为其签到吗？')) { return; }
+    }
+
+    var { error } = await sb.from('checkins').insert({ activity_id: aid, resident_id: resident.id, checked_in_by: staff.id });
+    if (error) { toast('签到失败', 'error'); return; }
+    toast('已为 ' + resident.name + ' 签到', 'success');
+    $('chkPin').value = ''; $('chkName').value = ''; $('chkPeople').innerHTML = ''; chkSelected = null; $('chkNameField').style.display = 'none';
+    loadChkAdmin();
+  });
+
+  // ================= 照片管理 =================
+  function setPhotoType(t) {
+    photoType = t;
+    $('typeGroupBtn').classList.toggle('on', t === 'group');
+    $('typePersonalBtn').classList.toggle('on', t === 'personal');
+    if (t === 'group') { $('typeGroupBtn').style.background = 'var(--teal-x)'; $('typeGroupBtn').style.color = 'var(--teal)'; $('typeGroupBtn').style.borderColor = '#BFE4D6'; $('typePersonalBtn').style.background = ''; $('typePersonalBtn').style.color = ''; $('typePersonalBtn').style.borderColor = ''; }
+    else { $('typePersonalBtn').style.background = 'var(--coral-x)'; $('typePersonalBtn').style.color = 'var(--coral)'; $('typePersonalBtn').style.borderColor = 'var(--coral-l)'; $('typeGroupBtn').style.background = ''; $('typeGroupBtn').style.color = ''; $('typeGroupBtn').style.borderColor = ''; }
+    $('phoResidentField').style.display = (t === 'personal') ? 'block' : 'none';
+  }
+  $('typeGroupBtn').addEventListener('click', function () { setPhotoType('group'); });
+  $('typePersonalBtn').addEventListener('click', function () { setPhotoType('personal'); });
+  setPhotoType('personal');
+
+  $('phoPin').addEventListener('input', async function () {
+    var pin = this.value.trim();
+    photoResidentId = null;
+    if (!validPin(pin)) { $('phoPeople').innerHTML = ''; return; }
+    var list = await findResidentsByPin(pin);
+    if (!list || !list.length) { $('phoPeople').innerHTML = '<p class="hint">未找到居民，请确认后四位。</p>'; return; }
+    if (list.length === 1) { photoResidentId = list[0].id; }
+    $('phoPeople').innerHTML = '<p class="hint">选择居民：</p>' + list.map(function (r) {
+      return '<button class="btn btn-line btn-block pho-person" style="margin-bottom:6px" data-id="' + r.id + '">' + esc(r.name) + '</button>';
+    }).join('');
+  });
+  $('phoPeople').addEventListener('click', function (e) {
+    var b = e.target.closest('.pho-person');
+    if (!b) return;
+    photoResidentId = b.getAttribute('data-id');
+    Array.prototype.forEach.call($('phoPeople').querySelectorAll('button'), function (x) { x.style.background = ''; });
+    b.style.background = 'var(--coral-x)';
+  });
+
+  $('phoUploadBtn').addEventListener('click', async function () {
+    var aid = $('phoActSel').value;
+    if (!aid) { toast('请先创建活动', 'error'); return; }
+    if (photoType === 'personal' && !photoResidentId) { toast('个人照请先选择关联居民', 'error'); return; }
+    var files = $('phoFiles').files;
+    if (!files || !files.length) { toast('请选择要上传的图片', 'error'); return; }
+
+    var ok = 0, fail = 0;
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      var ext = (f.name.match(/\.[a-zA-Z0-9]+$/) || ['.jpg'])[0];
+      var path = randomFileName(ext);
+      var { error: ue } = await sb.storage.from('activity-photos').upload(path, f);
+      if (ue) { console.error(ue); fail++; continue; }
+      var { error: ie } = await sb.from('photos').insert({
+        activity_id: aid,
+        resident_id: photoType === 'personal' ? photoResidentId : null,
+        type: photoType,
+        storage_path: path,
+        uploaded_by: staff.id
+      });
+      if (ie) { console.error(ie); fail++; continue; }
+      ok++;
+    }
+    toast('上传完成：成功 ' + ok + ' 张' + (fail ? '，失败 ' + fail + ' 张' : ''), fail ? 'error' : 'success');
+    $('phoFiles').value = '';
+    loadPhoList();
+  });
+
+  async function loadPhoList() {
+    var aid = $('phoActSel').value;
+    if (!aid) { $('phoList').innerHTML = '<div class="empty">请先创建活动</div>'; return; }
+    var { data, error } = await sb.from('photos')
+      .select('id,type,storage_path,residents(name)')
+      .eq('activity_id', aid).order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    data = data || [];
+    if (!data.length) { $('phoList').innerHTML = '<div class="empty">暂无照片</div>'; return; }
+    var html = '<div class="upload-grid">';
+    data.forEach(function (p) {
+      var cap = (p.type === 'personal' ? '个人·' + ((p.residents || {}).name || '') : '大合照');
+      html += '<div class="up-item"><img src="' + esc(photoUrl(p.storage_path)) + '" alt=""><div class="ph-cap" style="position:absolute;left:0;right:0;bottom:0;font-size:11px;color:#fff;padding:10px 6px 4px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6))">' + esc(cap) + '</div>' +
+        '<button class="del" data-ph="' + p.id + '" data-path="' + esc(p.storage_path) + '">✕</button></div>';
+    });
+    html += '</div>';
+    $('phoList').innerHTML = html;
+  }
+  $('phoActSel').addEventListener('change', function () { photoResidentId = null; $('phoPin').value = ''; $('phoPeople').innerHTML = ''; loadPhoList(); });
+
+  $('phoList').addEventListener('click', async function (e) {
+    var b = e.target.closest('.del');
+    if (!b) return;
+    if (!confirm('确定删除这张照片？')) return;
+    var id = b.getAttribute('data-ph');
+    var path = b.getAttribute('data-path');
+    await sb.from('photos').delete().eq('id', id);
+    await sb.storage.from('activity-photos').remove([path]);
+    toast('已删除', 'success');
+    loadPhoList();
+  });
+
+  // ================= 数据看板 =================
+  async function loadStat() {
+    var { count: total } = await sb.from('checkins').select('*', { count: 'exact', head: true });
+    var { count: people } = await sb.from('residents').select('*', { count: 'exact', head: true });
+    var { count: acts } = await sb.from('activities').select('*', { count: 'exact', head: true });
+    $('sTotal').textContent = total || 0;
+    $('sPeople').textContent = people || 0;
+    $('sActs').textContent = acts || 0;
+    var { data: rows } = await sb.from('checkins').select('checked_in_at');
+    var byMonth = {};
+    (rows || []).forEach(function (r) {
+      var d = new Date(r.checked_in_at);
+      var k = d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+      byMonth[k] = (byMonth[k] || 0) + 1;
+    });
+    var keys = Object.keys(byMonth).sort();
+    if (!keys.length) { $('sChart').innerHTML = '<p class="muted">暂无数据</p>'; return; }
+    var max = Math.max.apply(null, keys.map(function (k) { return byMonth[k]; }));
+    $('sChart').innerHTML = keys.map(function (k) {
+      var pct = Math.round(byMonth[k] / max * 100);
+      return '<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="flex:0 0 40px;font-size:13px;color:var(--ink2)">' + Number(k.split('-')[1]) + '月</span>' +
+        '<div style="flex:1;height:16px;background:#F0EDE5;border-radius:8px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--teal);border-radius:8px"></div></div>' +
+        '<span style="flex:0 0 36px;font-size:13px;font-weight:700">' + byMonth[k] + '</span></div>';
+    }).join('');
+  }
+
+  // ================= 存档导出（全量 CSV） =================
+  function todayStr() {
+    var d = new Date();
+    var p = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  async function archResidents() {
+    var { data } = await sb.from('residents').select('id,pin,name,created_at').order('created_at', { ascending: true });
+    var { data: chk } = await sb.from('checkins').select('resident_id');
+    var { data: reg } = await sb.from('registrations').select('resident_id');
+    var chkCount = {}, regCount = {};
+    (chk || []).forEach(function (c) { chkCount[c.resident_id] = (chkCount[c.resident_id] || 0) + 1; });
+    (reg || []).forEach(function (r) { regCount[r.resident_id] = (regCount[r.resident_id] || 0) + 1; });
+    var rows = [['姓名', '手机号后四位', '建档时间', '累计签到·积分', '累计报名次数']];
+    (data || []).forEach(function (r) {
+      var n = chkCount[r.id] || 0;
+      rows.push([r.name, r.pin, fmtTime(r.created_at), n, regCount[r.id] || 0]);
+    });
+    exportCSV('居民档案总表_' + todayStr() + '.csv', rows);
+  }
+
+  async function archCheckins() {
+    var { data } = await sb.from('checkins')
+      .select('checked_in_at,checked_in_by,residents(name,pin),activities(title,date)')
+      .order('checked_in_at', { ascending: true });
+    var rows = [['活动', '活动日期', '姓名', '后四位', '签到时间', '方式']];
+    (data || []).forEach(function (c) {
+      var r = c.residents || {}, a = c.activities || {};
+      rows.push([a.title || '', a.date || '', r.name || '', r.pin || '', fmtTime(c.checked_in_at), c.checked_in_by === 'self' ? '本人' : '代签']);
+    });
+    exportCSV('签到记录总表_' + todayStr() + '.csv', rows);
+  }
+
+  async function archRegs() {
+    var { data } = await sb.from('registrations')
+      .select('registered_at,residents(name,pin),activities(title,date)')
+      .order('registered_at', { ascending: true });
+    var rows = [['活动', '活动日期', '姓名', '后四位', '报名时间']];
+    (data || []).forEach(function (r) {
+      var rs = r.residents || {}, a = r.activities || {};
+      rows.push([a.title || '', a.date || '', rs.name || '', rs.pin || '', fmtTime(r.registered_at)]);
+    });
+    exportCSV('报名记录总表_' + todayStr() + '.csv', rows);
+  }
+
+  async function archActs() {
+    var { data } = await sb.from('activities')
+      .select('id,title,date,time,location,is_current,registration_enabled,capacity')
+      .order('created_at', { ascending: false });
+    var { data: chk } = await sb.from('checkins').select('activity_id');
+    var { data: reg } = await sb.from('registrations').select('activity_id');
+    var chkCount = {}, regCount = {};
+    (chk || []).forEach(function (c) { chkCount[c.activity_id] = (chkCount[c.activity_id] || 0) + 1; });
+    (reg || []).forEach(function (r) { regCount[r.activity_id] = (regCount[r.activity_id] || 0) + 1; });
+    var rows = [['活动名称', '日期', '时段', '地点', '是否本场', '报名人数', '签到人数']];
+    (data || []).forEach(function (a) {
+      rows.push([a.title, a.date || '', a.time || '', a.location || '', a.is_current ? '本场' : '', regCount[a.id] || 0, chkCount[a.id] || 0]);
+    });
+    exportCSV('活动汇总表_' + todayStr() + '.csv', rows);
+  }
+
+  async function archPhotos() {
+    var { data } = await sb.from('photos')
+      .select('type,storage_path,created_at,residents(name,pin),activities(title)')
+      .order('created_at', { ascending: false });
+    var rows = [['活动', '类型', '关联居民', '后四位', '文件名', '上传时间']];
+    (data || []).forEach(function (p) {
+      var r = p.residents || {}, a = p.activities || {};
+      var isPersonal = p.type === 'personal';
+      rows.push([a.title || '', isPersonal ? '个人照' : '大合照', isPersonal ? (r.name || '') : '—', isPersonal ? (r.pin || '') : '—', p.storage_path, fmtTime(p.created_at)]);
+    });
+    exportCSV('照片清单_' + todayStr() + '.csv', rows);
+  }
+
+  $('archResidents').addEventListener('click', archResidents);
+  $('archCheckins').addEventListener('click', archCheckins);
+  $('archRegs').addEventListener('click', archRegs);
+  $('archActs').addEventListener('click', archActs);
+  $('archPhotos').addEventListener('click', archPhotos);
+
+  // ================= 工具 =================
+  function exportCSV(filename, rows) {
+    var csv = '﻿' + rows.map(function (r) { return r.map(function (c) { return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  function refreshAll() {
+    loadActAdmin(); refreshSelects(); loadStat();
+  }
+
+  initAuth();
+})();

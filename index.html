@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#D85A30">
+<title>莲花社区居家养老服务中心 · 服务工作简报</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --coral:#D85A30; --coral-l:#F0997B; --coral-x:#FAECE7;
+  --amber:#BA7517; --amber-l:#EF9F27; --amber-x:#FAEEDA;
+  --teal:#0F6E56; --teal-x:#E1F5EE;
+  --ink:#2C2C2A; --ink2:#5F5E5A; --ink3:#888780;
+  --line:#E8E4DC; --paper:#FFFDF9;
+}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Source Han Sans SC",sans-serif;
+  background:#F3EFE6;color:var(--ink);
+  font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.wrap{width:100%;max-width:880px;margin:0 auto;padding:0 16px 34px}
+
+/* ===== 顶部 ===== */
+.topbar{
+  background:linear-gradient(180deg,#FFF8F2 0%,#FFFDF9 100%);
+  border-bottom:2px solid var(--coral-x);
+  padding:14px 0 13px;
+}
+.topbar .wrap{padding-bottom:0;display:flex;align-items:center;gap:12px}
+.lotus-logo{width:48px;height:48px;flex:0 0 48px}
+.orgname{font-size:16px;font-weight:600;color:var(--coral);line-height:1.25}
+.orgsub{font-size:21px;font-weight:700;color:var(--ink);line-height:1.3;margin-top:2px}
+.orgtag{
+  margin-left:auto;flex:0 0 auto;text-align:right;
+  font-size:13px;color:var(--ink3);line-height:1.4;
+}
+.orgtag b{display:block;font-size:15px;color:var(--amber);font-weight:700}
+
+/* ===== 本场活动门户（简报页作为统一入口） ===== */
+.portal{
+  margin:16px 0 0;position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#FFF4EC 0%,#FFFDF9 56%,#F3FCF8 100%);
+  border:2px solid #F3C6B2;border-radius:22px;
+  padding:16px 17px 17px;
+  box-shadow:0 3px 16px rgba(216,90,48,.09);
+}
+.portal::after{
+  content:'';position:absolute;right:-46px;top:-46px;width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,#FAEEDA 0%,rgba(250,238,218,0) 70%);
+  pointer-events:none;z-index:0;
+}
+/* 内容层必须盖在装饰光晕之上，否则右上角的同步徽标会被光晕冲淡看不清 */
+.portal > *{position:relative;z-index:1}
+.portal-hd{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;color:var(--coral);letter-spacing:.06em;
+}
+.portal-hd .plive{
+  width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:var(--coral);
+  animation:pblink 1.6s infinite;
+}
+@keyframes pblink{0%,100%{opacity:1}50%{opacity:.22}}
+.portal-hd .psync{
+  margin-left:auto;font-size:11.5px;font-weight:700;letter-spacing:0;
+  color:var(--teal);background:var(--teal-x);border:1.5px solid #BFE4D6;
+  border-radius:999px;padding:2px 9px;white-space:nowrap;flex:0 0 auto;
+}
+.pname{
+  margin-top:9px;
+  font-size:clamp(21px,6.4vw,24px);font-weight:800;line-height:1.34;color:var(--ink);
+  letter-spacing:.005em;
+}
+.pmeta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.pitem{
+  display:inline-flex;align-items:center;gap:6px;max-width:100%;
+  font-size:13.5px;font-weight:600;color:#8E3618;
+  background:rgba(255,255,255,.88);border:1.5px solid #F3C6B2;
+  border-radius:9px;padding:5px 11px;line-height:1.4;
+}
+.pitem svg{width:15px;height:15px;flex:0 0 15px}
+.pitem span{min-width:0}
+.pcount{
+  margin-top:11px;
+  font-size:13.5px;color:var(--ink2);line-height:1.5;
+}
+.pcount b{font-size:19px;font-weight:800;color:var(--coral);font-variant-numeric:tabular-nums;margin:0 2px}
+.pbtn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  margin-top:13px;min-height:58px;border-radius:16px;
+  background:linear-gradient(160deg,var(--coral) 0%,#C24A24 100%);
+  border-bottom:4px solid #A83F1D;color:#fff;text-decoration:none;
+  font-size:20px;font-weight:800;letter-spacing:.02em;
+  transition:transform .1s;
+}
+.pbtn:active{transform:translateY(2px)}
+.pbtn svg{width:24px;height:24px;flex:0 0 24px}
+.pbtn:focus-visible{outline:3px solid var(--amber-l);outline-offset:3px}
+/* ===== 签到 + 报名 并排按钮（报名为新增） ===== */
+.pbtns{display:flex;gap:10px;margin-top:13px}
+.pbtns .pbtn{flex:1;margin-top:0}
+.pbtn-reg{
+  background:linear-gradient(160deg,var(--teal) 0%,#0B5B47 100%);
+  border-bottom:4px solid #084A39;
+}
+.pbtn-reg:active{transform:translateY(2px)}
+/* ===== 报名弹窗 ===== */
+.reg-mask{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(44,44,42,.5)}
+.reg-mask.on{display:flex}
+.reg-box{background:var(--paper);width:100%;max-width:400px;border-radius:20px;padding:20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.reg-hd{display:flex;align-items:center;margin-bottom:10px}
+.reg-hd .rt{font-size:19px;font-weight:800;color:var(--ink)}
+.reg-hd .rc{margin-left:auto;width:34px;height:34px;border:none;border-radius:50%;background:#EFECE4;color:var(--ink2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.reg-sub{font-size:13.5px;color:var(--ink3);margin-bottom:14px;line-height:1.5}
+.reg-box .rin{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff;outline:none;margin-bottom:12px}
+.reg-box .rin.big{font-size:26px;text-align:center;letter-spacing:.35em;font-weight:700}
+.reg-box .rin:focus{border-color:var(--coral-l);box-shadow:0 0 0 3px var(--coral-x)}
+.reg-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--teal) 0%,#0B5B47 100%);border-bottom:4px solid #084A39;color:#fff;font-size:19px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
+.reg-btn:active{transform:translateY(2px)}
+.reg-err{display:none;font-size:13.5px;color:#C0392B;margin-top:10px;text-align:center}
+/* 听语音按钮（适老化） */
+.vbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:12px 14px;border:1.5px solid var(--coral-l);border-radius:14px;background:var(--coral-x);color:var(--coral);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+.vbtn:active{transform:translateY(1px)}
+.vbtn .vico{font-size:19px}
+.phint{
+  margin-top:9px;text-align:center;
+  font-size:12.5px;color:var(--ink3);line-height:1.6;
+}
+
+/* ===== 月份切换（吸顶） ===== */
+.mtabs{
+  position:sticky;top:0;z-index:40;
+  display:flex;gap:8px;padding:10px 0 11px;
+  background:rgba(243,239,230,.94);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  margin-bottom:16px;
+}
+.mtab{
+  flex:1 1 0;min-height:52px;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;padding:4px 6px;cursor:pointer;
+  border:2px solid var(--line);border-radius:15px;background:#fff;
+  font-family:inherit;color:var(--ink2);
+  transition:background .18s,border-color .18s,color .18s,transform .1s;
+}
+.mtab:active{transform:translateY(1px)}
+.mtab .m1{font-size:19px;font-weight:700;line-height:1.1;letter-spacing:.01em}
+.mtab .m2{font-size:11.5px;font-weight:500;opacity:.72;line-height:1.1}
+.mtab.on{
+  background:linear-gradient(160deg,var(--coral) 0%,#C24A24 100%);
+  border-color:#A83F1D;color:#fff;
+  box-shadow:0 3px 12px rgba(216,90,48,.28);
+}
+.mtab.on .m2{opacity:.85}
+.mtab:focus-visible{outline:3px solid var(--amber-l);outline-offset:2px}
+
+/* ===== 通用区块 ===== */
+.sec{margin-top:20px}
+.sec-hd{display:flex;align-items:baseline;gap:9px;margin-bottom:11px;padding-left:3px}
+.sec-hd h2{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+.sec-hd .sub{font-size:13.5px;color:var(--ink3);font-weight:400}
+.sec-hd .bar{width:5px;height:19px;border-radius:3px;background:var(--coral);flex:0 0 5px;align-self:center}
+
+.card{
+  background:var(--paper);border:2px solid var(--line);border-radius:20px;
+  padding:18px 17px;box-shadow:0 2px 10px rgba(44,44,42,.045);
+}
+
+/* ===== 月度概览 ===== */
+.hero{
+  background:linear-gradient(158deg,#FFF9F4 0%,#FFFDF9 62%);
+  border:2px solid #F6DCCF;border-radius:22px;padding:18px 17px 17px;
+  box-shadow:0 3px 14px rgba(216,90,48,.075);
+}
+.hero-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.hero-hd .ttl{font-size:22px;font-weight:700;color:var(--coral);letter-spacing:.01em}
+.hero-hd .pill{
+  font-size:13px;font-weight:600;color:#8E3618;background:var(--coral-x);
+  border:1.5px solid #F3C6B2;border-radius:999px;padding:3px 11px;
+}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi{
+  background:#fff;border:2px solid var(--line);border-radius:16px;
+  padding:13px 14px 12px;min-width:0;
+}
+.kpi .kl{font-size:13.5px;color:var(--ink2);font-weight:600;line-height:1.35}
+/* 数字与单位做成可折行的 flex：窄屏（320/360）单位自动落到第二行，绝不撑破卡片 */
+.kpi .kv{
+  display:flex;flex-wrap:wrap;align-items:baseline;column-gap:3px;
+  font-size:clamp(23px,7.2vw,31px);font-weight:800;line-height:1.16;
+  letter-spacing:-.01em;margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.kpi .kv small{font-size:14px;font-weight:600;letter-spacing:0}
+.kpi .ks{font-size:12.5px;color:var(--ink3);line-height:1.35;margin-top:1px}
+.kpi.c1{border-color:#F3C6B2;background:linear-gradient(170deg,#FFF6F1 0%,#fff 70%)}
+.kpi.c1 .kv{color:var(--coral)}
+.kpi.c2{border-color:#F7DFAE;background:linear-gradient(170deg,#FFFBF0 0%,#fff 70%)}
+.kpi.c2 .kv{color:var(--amber)}
+.kpi.c3{border-color:#BFE4D6;background:linear-gradient(170deg,#F3FCF8 0%,#fff 70%)}
+.kpi.c3 .kv{color:var(--teal)}
+.kpi.c4 .kv{color:var(--ink)}
+.hero-note{
+  margin-top:13px;padding-top:12px;border-top:1.5px dashed var(--line);
+  font-size:14px;color:var(--ink2);line-height:1.6;
+}
+.hero-note b{color:var(--coral);font-weight:700}
+
+/* ===== 服务构成 ===== */
+.mix{list-style:none}
+.mix li{margin-bottom:12px}
+.mix li:last-child{margin-bottom:0}
+.mix .row{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.mix .nm{font-size:15.5px;font-weight:600;color:var(--ink)}
+.mix .vl{margin-left:auto;font-size:15.5px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
+.mix .vl small{font-size:12.5px;font-weight:500;color:var(--ink3);margin-left:2px}
+.mix .track{height:13px;border-radius:999px;background:#F0EBE1;overflow:hidden}
+.mix .fill{height:100%;border-radius:999px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.mix li:nth-child(1) .fill{background:linear-gradient(90deg,var(--coral) 0%,var(--coral-l) 100%)}
+.mix li:nth-child(2) .fill{background:linear-gradient(90deg,var(--amber) 0%,var(--amber-l) 100%)}
+.mix li:nth-child(3) .fill{background:linear-gradient(90deg,var(--teal) 0%,#2E9C7C 100%)}
+.mix li:nth-child(n+4) .fill{background:linear-gradient(90deg,#7C8B93 0%,#A8B4BA 100%)}
+.card .foot-note{font-size:12.5px;color:var(--ink3);line-height:1.55;margin-top:13px;padding-top:11px;border-top:1.5px dashed var(--line)}
+
+/* ===== 恒常服务标签 ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:600;color:var(--teal);
+  background:var(--teal-x);border:1.5px solid #BFE4D6;border-radius:999px;
+  padding:6px 13px;line-height:1.4;
+}
+.chip .cnum{font-weight:800;color:#0A5A45;font-variant-numeric:tabular-nums}
+
+/* ===== 活动精选 ===== */
+.agrid{display:grid;grid-template-columns:1fr;gap:14px}
+.act{
+  background:var(--paper);border:2px solid var(--line);border-radius:20px;
+  overflow:hidden;box-shadow:0 2px 10px rgba(44,44,42,.05);
+  display:flex;flex-direction:column;
+}
+.act-ph{position:relative;width:100%;aspect-ratio:16/10;background:#EDE8DE;overflow:hidden;cursor:zoom-in}
+.act-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.act-ph .badge{
+  position:absolute;right:10px;bottom:10px;
+  font-size:12.5px;font-weight:700;color:#fff;
+  background:rgba(30,30,28,.66);border:1.5px solid rgba(255,255,255,.42);
+  border-radius:999px;padding:3px 10px;letter-spacing:.02em;
+}
+.act-ph .mtag{
+  position:absolute;left:10px;top:10px;
+  font-size:12.5px;font-weight:700;color:#7A2F14;
+  background:rgba(255,255,255,.92);border:1.5px solid #F3C6B2;
+  border-radius:999px;padding:3px 10px;
+}
+/* 无照片时的设计卡面 */
+.act-ph.noimg{cursor:default;background:linear-gradient(150deg,#FAECE7 0%,#FFF6F1 55%,#FAEEDA 100%)}
+.act-ph.noimg .wm{
+  position:absolute;right:-14px;bottom:-24px;width:150px;height:150px;opacity:.13;
+}
+.act-ph.noimg .nbox{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;padding:16px;text-align:center;
+}
+.act-ph.noimg .nicon{width:40px;height:40px;opacity:.75}
+.act-ph.noimg .ntxt{font-size:14.5px;font-weight:700;color:#8E3618;letter-spacing:.02em}
+.act-ph.noimg .nsub{font-size:12.5px;color:#A9705A}
+.act-bd{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column}
+.act-tag{
+  display:inline-block;align-self:flex-start;
+  font-size:12.5px;font-weight:700;color:var(--amber);
+  background:var(--amber-x);border:1.5px solid #F7DFAE;border-radius:6px;
+  padding:2px 9px;margin-bottom:8px;letter-spacing:.02em;
+}
+.act-tag.t-comm{color:var(--coral);background:var(--coral-x);border-color:#F3C6B2}
+.act-tag.t-class{color:var(--teal);background:var(--teal-x);border-color:#BFE4D6}
+.act-name{font-size:18.5px;font-weight:700;line-height:1.42;color:var(--ink);letter-spacing:.005em}
+.act-meta{font-size:14px;color:var(--amber);font-weight:600;margin-top:7px;line-height:1.5}
+.act-desc{font-size:14.5px;color:var(--ink2);line-height:1.68;margin-top:8px}
+.act-others{margin-top:14px}
+.act-others .ohd{font-size:13.5px;font-weight:700;color:var(--ink3);margin-bottom:8px;letter-spacing:.02em}
+
+/* ===== 季度合计 / 趋势 ===== */
+.qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.qbox{
+  background:linear-gradient(168deg,#FFFDF9 0%,#FBF7EF 100%);
+  border:2px solid var(--line);border-radius:16px;padding:13px 14px;
+}
+.qbox .ql{font-size:13.5px;color:var(--ink2);font-weight:600}
+.qbox .qv{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:3px;font-size:clamp(22px,7vw,29px);font-weight:800;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums;color:var(--teal)}
+.qbox .qv small{font-size:13.5px;font-weight:600}
+.qtot{
+  background:linear-gradient(140deg,var(--coral) 0%,#C24A24 100%);
+  color:#fff;border:none;border-radius:20px;padding:17px 18px;margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(216,90,48,.22);
+}
+.qtot .qtl{font-size:14px;opacity:.9;font-weight:600}
+.qtot .qtv{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:4px;font-size:clamp(30px,10vw,38px);font-weight:800;line-height:1.18;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.qtot .qtv small{font-size:16px;font-weight:600;opacity:.92}
+.qtot .qts{font-size:14px;opacity:.92;margin-top:4px;line-height:1.5}
+
+.charts{display:grid;grid-template-columns:1fr;gap:14px}
+.chart{
+  background:#fff;border:2px solid var(--line);border-radius:16px;padding:13px 14px 8px;
+}
+.chart h3{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.chart .cunit{font-size:12.5px;color:var(--ink3);margin-bottom:6px}
+.chart svg{width:100%;height:auto;display:block}
+
+/* ===== 页脚 ===== */
+.pagefoot{
+  margin-top:26px;padding-top:16px;border-top:2px solid var(--line);
+  font-size:13px;color:var(--ink3);line-height:1.72;
+}
+.pagefoot b{color:var(--ink2);font-weight:700}
+.pagefoot .upd{
+  display:inline-block;margin-top:9px;font-size:12.5px;font-weight:600;color:var(--ink3);
+  background:#EDE8DE;border-radius:8px;padding:4px 10px;
+}
+.staff-corner{
+  flex:0 0 auto;margin-left:4px;width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink3);background:#F2EEE5;border:1.5px solid var(--line);
+  transition:.15s;
+}
+.staff-corner svg{width:18px;height:18px}
+.staff-corner:active{transform:scale(.9)}
+
+/* ===== 更新说明（折叠） ===== */
+details.howto{
+  margin-top:16px;background:#FFFDF9;border:2px dashed #DCD6C8;border-radius:16px;
+  padding:0 16px;font-size:14px;color:var(--ink2);
+}
+details.howto summary{
+  cursor:pointer;list-style:none;padding:13px 0;font-size:15px;font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:8px;
+}
+details.howto summary::-webkit-details-marker{display:none}
+details.howto summary .plus{
+  margin-left:auto;width:22px;height:22px;flex:0 0 22px;border-radius:50%;
+  background:var(--coral-x);color:#8E3618;font-weight:800;font-size:15px;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+details.howto[open] summary .plus{background:var(--coral);color:#fff}
+details.howto .hbody{padding:0 0 15px;line-height:1.75}
+details.howto code{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;
+  background:#F0EBE1;border-radius:5px;padding:1.5px 6px;color:#7A2F14;
+}
+details.howto ol{padding-left:19px}
+details.howto li{margin-bottom:6px}
+details.howto .warn{
+  margin-top:9px;padding:9px 12px;border-radius:10px;
+  background:var(--amber-x);border:1.5px solid #F7DFAE;color:#6B4409;font-size:13.5px;
+}
+
+/* ===== 灯箱 ===== */
+.lb{
+  position:fixed;inset:0;z-index:200;display:none;
+  background:rgba(18,17,16,.94);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  align-items:center;justify-content:center;padding:14px;
+}
+.lb.on{display:flex}
+.lb-img{
+  max-width:100%;max-height:78vh;border-radius:14px;display:block;
+  box-shadow:0 10px 40px rgba(0,0,0,.5);background:#2C2C2A;
+}
+.lb-bar{
+  position:absolute;left:0;right:0;bottom:0;padding:16px 18px 22px;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.72) 100%);
+  color:#fff;text-align:center;
+}
+.lb-cap{font-size:15.5px;font-weight:600;line-height:1.5}
+.lb-idx{font-size:13px;opacity:.75;margin-top:3px}
+.lb-close{
+  position:absolute;right:14px;top:14px;width:44px;height:44px;
+  border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;
+  font-size:24px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-family:inherit;
+}
+.lb-close:active{background:rgba(255,255,255,.32)}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:46px;height:64px;border:none;border-radius:14px;
+  background:rgba(255,255,255,.16);color:#fff;font-size:26px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+}
+.lb-nav:active{background:rgba(255,255,255,.3)}
+.lb-nav.prev{left:12px}
+.lb-nav.next{right:12px}
+.lb-nav[hidden]{display:none}
+
+/* ===== 响应式 ===== */
+@media (min-width:620px){
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .qgrid{grid-template-columns:repeat(4,1fr)}
+  .agrid{grid-template-columns:repeat(2,1fr)}
+  .charts{grid-template-columns:1fr 1fr}
+}
+@media (max-width:359px){
+  .wrap{padding-left:12px;padding-right:12px}
+  .topbar .wrap{gap:9px}
+  .lotus-logo{width:40px;height:40px;flex:0 0 40px}
+  .orgname{font-size:13px;line-height:1.3}
+  .orgsub{font-size:17px}
+  .orgtag{font-size:11px}
+  .orgtag b{font-size:12.5px}
+  .kpi{padding:11px 11px 10px}
+  .kpi .kl{font-size:12.5px}
+  .kpi .kv{font-size:26px}
+  .kpi .kv small{font-size:12px}
+  .kpi .ks{font-size:11.5px}
+  .qtot .qtv{font-size:32px}
+  .mtab .m1{font-size:17px}
+  .mtab .m2{font-size:10.5px}
+  .hero-hd .ttl{font-size:19px}
+}
+@media print{
+  body{background:#fff}
+  .mtabs{position:static;background:none}
+  .act-ph{page-break-inside:avoid}
+  details.howto{display:none}
+}
+
+/* ===== 底部导航（居民端）===== */
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;background:var(--paper);
+  border-top:1.5px solid var(--line);display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bottom-nav a{flex:1;text-align:center;padding:9px 0 7px;color:var(--ink3);font-size:12px;text-decoration:none}
+.bottom-nav a .ico{font-size:22px;display:block;line-height:1.2}
+.bottom-nav a.on{color:var(--coral)}
+body.has-nav{padding-bottom:66px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
+</head>
+<body class="has-nav">
+
+<!-- ================= 顶部 ================= -->
+<header class="topbar">
+  <div class="wrap">
+    <svg class="lotus-logo" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="48" fill="#FAECE7"/>
+      <path d="M50 22c7 9 11 19 11 28 0 6-2 11-5 15h-12c-3-4-5-9-5-15 0-9 4-19 11-28z" fill="#F0997B"/>
+      <path d="M50 26c-4 7-6 14-6 21 0 6 1 10 3 14h6c2-4 3-8 3-14 0-7-2-14-6-21z" fill="#D85A30"/>
+      <path d="M28 42c9 2 16 7 20 14 2 3 3 6 3 9l-9 4c-3-4-7-9-11-14-3-4-5-8-6-11z" fill="#F0997B"/>
+      <path d="M72 42c-9 2-16 7-20 14-2 3-3 6-3 9l9 4c3-4 7-9 11-14 3-4 5-8 6-11z" fill="#F0997B"/>
+      <path d="M44 68h12c0 8-1 13-6 16-5-3-6-8-6-16z" fill="#BA7517"/>
+    </svg>
+    <div style="min-width:0">
+      <div class="orgname">澳门街坊会联合总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag">
+      <b>服务工作简报</b>
+      <span id="orgRange">—</span>
+    </div>
+    <a class="staff-corner" href="admin.html" title="工作人员入口" aria-label="工作人员入口">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="4" y="11" width="16" height="10" rx="2"/>
+        <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ 本场活动门户：从这里进入签到页 ============ -->
+  <section class="portal" id="portal" aria-labelledby="pTitle">
+    <div class="portal-hd">
+      <span class="plive"></span>本场活动 · 可现场签到
+      <span class="psync" id="pSync">未连接</span>
+    </div>
+    <div class="pname" id="pTitle">长者活动签到</div>
+    <div class="pmeta" id="pMeta"></div>
+    <div class="pcount" id="pCount"></div>
+    <div class="pbtns">
+      <a class="pbtn" id="pBtn" href="checkin.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12.5l5 5L20 6.5"/>
+        </svg>
+        <span id="pBtnTx">进入签到</span>
+      </a>
+      <button class="pbtn pbtn-reg" id="pRegBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2.5"/>
+          <path d="M8 9h8M8 13h6"/>
+        </svg>
+        <span>活动报名</span>
+      </button>
+    </div>
+    <div class="phint" id="pHint"></div>
+  </section>
+
+  <!-- 月份切换（由 DATA.months 自动生成） -->
+  <nav class="mtabs" id="mtabs" role="tablist" aria-label="按月查看"></nav>
+
+  <!-- 月度内容（动态渲染） -->
+  <div id="mpanel" role="tabpanel"></div>
+
+  <!-- ================= 季度合计 ================= -->
+  <section class="sec" id="qsec">
+    <div class="sec-hd">
+      <span class="bar"></span>
+      <h2>季度合计</h2>
+      <span class="sub" id="qRange">—</span>
+    </div>
+
+    <div class="qtot">
+      <div class="qtl">居家养老服务总人次</div>
+      <div class="qtv" id="qServed">—<small>人次</small></div>
+      <div class="qts" id="qServedSub">—</div>
+    </div>
+
+    <div class="qgrid" id="qgrid"></div>
+
+    <div class="charts">
+      <div class="chart">
+        <h3>各月居家养老服务人次</h3>
+        <div class="cunit">单位：人次</div>
+        <div id="chartA"></div>
+      </div>
+      <div class="chart">
+        <h3>各月澳门长者服务人次</h3>
+        <div class="cunit">单位：人次（含澳门长者占比）</div>
+        <div id="chartB"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 更新说明 ================= -->
+  <details class="howto">
+    <summary>如何更新下个月的数据与照片<span class="plus">+</span></summary>
+    <div class="hbody">
+      <ol>
+        <li>把新月份的活动照片压缩后放进同目录的 <code>photos</code> 文件夹，文件名接着编号（如 <code>26.jpg</code>）。</li>
+        <li>用记事本打开本文件，搜索 <code>DATA.months</code>，在数组末尾照抄一个月的数据块，改成新月份。</li>
+        <li>保存后刷新页面即可 —— 顶部月份按钮、数据看板、季度趋势都会自动出现新月份，无需改别处代码。</li>
+      </ol>
+      <div class="warn">
+        <b>只改数据、别动结构：</b>月份的 <code>id</code> 用 <code>2026-09</code> 这种格式，<code>tab</code> 写 <code>9月</code>；
+        <code>photos</code> 里写相对路径如 <code>photos/26.jpg</code>；没有照片的活动把 <code>photos</code> 留成空数组 <code>[]</code>，页面会自动画一张图文卡。
+        数据一律以当月《工作简报》原文为准。
+      </div>
+    </div>
+  </details>
+
+  <div class="pagefoot">
+    <b>数据来源：</b><span id="srcNote">—</span><br>
+    <b>说明：</b>本页仅收录<b>莲花社区居家养老服务中心</b>的服务数据与活动。建档数量、80岁以上长者数等累计口径均按各月简报原文收录。
+    <br><span class="upd" id="updNote">—</span>
+  </div>
+
+</div>
+
+<!-- ================= 活动报名弹窗 ================= -->
+<div class="reg-mask" id="regMask" role="dialog" aria-modal="true" aria-label="活动报名">
+  <div class="reg-box">
+    <div class="reg-hd">
+      <div class="rt">活动报名</div>
+      <button class="rc" id="regClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="reg-sub" id="regSub">—</div>
+    <button class="vbtn" id="regVoice" type="button"><span class="vico">🔊</span>听语音</button>
+    <input class="rin big" id="regPin" type="tel" inputmode="numeric" maxlength="4" placeholder="手机号后四位" autocomplete="off">
+    <input class="rin" id="regName" type="text" placeholder="姓名" autocomplete="off">
+    <button class="reg-btn" id="regSubmit" type="button">确认报名</button>
+    <div class="reg-err" id="regErr"></div>
+  </div>
+</div>
+
+<!-- ================= 灯箱 ================= -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="查看大图">
+  <button class="lb-close" id="lbClose" aria-label="关闭">✕</button>
+  <button class="lb-nav prev" id="lbPrev" aria-label="上一张">‹</button>
+  <button class="lb-nav next" id="lbNext" aria-label="下一张">›</button>
+  <img class="lb-img" id="lbImg" alt="">
+  <div class="lb-bar">
+    <div class="lb-cap" id="lbCap"></div>
+    <div class="lb-idx" id="lbIdx"></div>
+  </div>
+</div>
+
+<script>
+/* ==================================================================
+   ★★★ 数据中心 —— 以后新增月份，只要往 months 数组末尾「追加」一块就行 ★★★
+   追加时：顶部月份按钮 / 数据看板 / 季度趋势图 全部自动更新，无需改动其它代码。
+   ==================================================================
+   字段说明：
+     id       月份标识，格式 2026-09（用于内部判断，必须唯一）
+     tab      月份按钮上的短标签，如 9月
+     name     月份全称，如 2026年9月
+     served   当月居家养老服务总人次
+     macau    当月澳门长者服务人次
+     archive  建档情况：total 累计60岁及以上建档总数 / macau 澳门 / hk 香港 / age80 80岁以上
+     lunch    健康午餐：meals 餐次 / macau 澳门长者人次
+     mix      主要服务构成 [名称, 人次]，按简报所列项目填写（不必凑够总数）
+     services 恒常服务标签，如 '助餐配餐 1760 人次'
+     acts     活动精选卡片（含照片的活动请给 photos 填相对路径）
+     others   当月其余活动（纯文字，一行一条；留空数组即可）
+   ================================================================== */
+var DATA = {
+  srcNote: '',   /* 留空则自动按 months 生成，如「……《工作简报》2026年7月、8月」 */
+  title: '',     /* 留空则用默认站名；浏览器标签页标题会自动拼上当前收录月份区间 */
+  updated: '2026年9月14日',
+
+  /* ------------------------------------------------------------------
+     本场活动门户 —— 与签到页的连接配置
+     ------------------------------------------------------------------
+     签到页可能放在两个位置，页面会**自动探测**哪个能用，不用手改：
+
+       ① 放在简报页文件夹里面（当前结构，推荐）
+          lotus-brief/index.html
+          lotus-brief/checkin/index.html      → checkin/index.html
+
+       ② 两个文件夹并排（另一种部署方式）
+          lotus-brief/index.html
+          lotus-checkin/index.html            → ../lotus-checkin/index.html
+
+     下面 checkinCandidates 就是探测顺序，先试当前结构的嵌套位置，
+     不行再试并排位置。哪个能打开就用哪个。
+
+     checkinUrl 填了绝对网址时，直接用它，不再探测（适合签到页在别的站点）。
+     ------------------------------------------------------------------ */
+  checkinPath: 'checkin.html',
+  checkinUrl: 'checkin.html',
+
+  checkinCandidates: [
+    'checkin.html'
+  ],
+
+  /* 读不到签到页数据时（两个页面不同源 / 还没设置过活动）显示的活动信息 */
+  actFallback: {
+    title: '长者活动签到',
+    time:  '以现场公告为准',
+    place: '莲花社区服务点'
+  },
+
+  months: [
+    /* ---------------------------- 2026年7月 ---------------------------- */
+    {
+      id:'2026-07', tab:'7月', name:'2026年7月',
+      served:3019, macau:362,
+      archive:{ total:677, macau:41, hk:16, age80:41 },
+      lunch:{ meals:1760, macau:273 },
+      mix:[ ['助餐配餐',1760], ['恒常场地',972], ['文化娱乐',56], ['康复护理',12] ],
+      services:[
+        '助餐配餐 1760 人次',
+        '恒常场地 972 人次',
+        '康复理疗 12 人次',
+        '居家上门 8 位长者 13 人次',
+        '健康午餐 1760 餐次（澳门 273 人次）'
+      ],
+      acts:[
+        {
+          name:'守护银龄生命安全 · 长者急救知识科普讲座',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'7月2日开展 · 吸引 21 人次琴澳长者参与（澳门长者 4 人次）',
+          desc:'为提升长者慢性病防治意识、促进健康生活方式养成，开展急救知识科普讲座，现场讲解并演示成人基础生命支持等急救要点，帮助长者掌握关键时刻的自救互救技能。',
+          photos:['photos/01.jpg','photos/02.jpg']
+        },
+        {
+          name:'预防认知退化服务计划宣传街站',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'响应世界脑健康日 · 吸引 34 人次参与（澳门居民 7 人次）',
+          desc:'为提升社区长者对认知退化的认识及预防意识，开展“人人享有脑健康”预防认知退化服务计划宣传街站，通过摊位互动向长者及家属介绍认知退化的早期信号与日常预防方法。',
+          photos:['photos/04.jpg']
+        }
+      ],
+      others:[
+        '粤语小剧场（7月持续 4 场 · 11 位长者、35 人次参与，澳门长者 12 人次）',
+        '“人人享有脑健康”预防认知退化服务计划宣传海报'
+      ]
+    },
+
+    /* ---------------------------- 2026年8月 ---------------------------- */
+    {
+      id:'2026-08', tab:'8月', name:'2026年8月',
+      served:3018, macau:444,
+      archive:{ total:699, macau:43, hk:19, age80:48 },
+      lunch:{ meals:1513, macau:214 },
+      mix:[ ['助餐配餐',1513], ['恒常场地',963], ['文化娱乐',244], ['康复护理',40], ['居家照顾及支援',23] ],
+      services:[
+        '助餐配餐 1513 人次',
+        '恒常场地 963 人次',
+        '文化娱乐 244 人次',
+        '康复理疗 15 位长者 40 人次',
+        '居家照顾及支援 8 位长者 23 人次',
+        '健康午餐 1513 餐次（澳门 214 人）'
+      ],
+      acts:[
+        {
+          name:'“走进横琴”澳门长者养老服务体验活动',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'8月26日开展 · 吸引 41 位澳门长者参与',
+          desc:'为帮助澳门长者进一步了解横琴社区环境及养老服务资源，通过实地参观、服务体验等形式，引导长者认识横琴社区及相关养老服务资源，推动琴澳养老服务深度融合。',
+          photos:['photos/16.jpg','photos/17.jpg']
+        },
+        {
+          name:'“琴暖桑榆 莲贺安康”长者季度生日庆典',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'8月26日举办 · 共 67 位长者参与',
+          desc:'为深化琴澳养老文化交流、搭建两地长者联谊互动平台、传递暖心养老温情，为季度生辰的长者举办集体生日庆典，长者们欢聚一堂、共贺安康。',
+          photos:['photos/18.jpg']
+        },
+        {
+          name:'“防跌倒 保平安”长者居家安全宣传活动',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'8月19日开展 · 18 位长者参与（澳门长者 2 位）',
+          desc:'为增强长者的居家安全防范意识、普及居家防跌倒知识、降低长者跌倒意外风险，以“客厅里的绊脚石”等生活场景为切入点，带领长者一起排查家中的安全隐患。',
+          photos:['photos/14.jpg','photos/15.jpg']
+        },
+        {
+          name:'“三餐有度，运动有方”健康管理工作坊',
+          tag:'社区活动', tagType:'t-comm',
+          meta:'8月31日开展 · 吸引 26 位长者参与（澳门居民 3 位）',
+          desc:'为促进长者健康管理、培养健康生活习惯，活动围绕科学减糖及运动处方两大主题，引导长者逐步养成良好的饮食与运动习惯。',
+          photos:['photos/19.jpg','photos/20.jpg','photos/21.jpg']
+        }
+      ],
+      others:[
+        '“指尖曼波 · 悦动夕阳”长者志愿者认知保健兴趣班（8月13/20/27日共 3 节 · 服务 68 人次，澳门居民 9 人次）',
+        '“乐享脑健康”认知训练兴趣班（8月共 4 节 · 吸引 65 人次参与，澳门长者 18 人次）',
+        '“荷您为——老有所为践初心，志愿护航三伏贴”志愿服务（组织 18 人次长者志愿者支援红旗社区卫生服务中心）'
+      ]
+    }
+
+    /* ★★★ 新增月份示例 —— 复制下面这块，去掉注释即可 ★★★
+    ,{
+      id:'2026-09', tab:'9月', name:'2026年9月',
+      served:0, macau:0,
+      archive:{ total:0, macau:0, hk:0, age80:0 },
+      lunch:{ meals:0, macau:0 },
+      mix:[ ['助餐配餐',0], ['恒常场地',0] ],
+      services:[ '助餐配餐 0 人次' ],
+      acts:[
+        { name:'活动名称', tag:'社区活动', tagType:'t-comm',
+          meta:'开展日期 · 参与人数', desc:'活动简介……',
+          photos:['photos/26.jpg'] }
+      ],
+      others:[]
+    }
+    */
+  ]
+};
+
+/* ================= 工具 ================= */
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function num(n){ return Number(n||0).toLocaleString('en-US'); }
+function $(id){ return document.getElementById(id); }
+
+/* ================= 区间文案（全部由 DATA.months 推导，增删月份无需手改标题） ================= */
+
+/* 页眉右上角 / 合计卡片副标题用：2026年7—8月 */
+function rangeLabel(){
+  var ms = DATA.months;
+  if (!ms.length) return '—';
+  if (ms.length === 1) return ms[0].name;
+  var first = ms[0], last = ms[ms.length-1];
+  var y1 = first.id.slice(0,4), y2 = last.id.slice(0,4);
+  var m1 = Number(first.id.slice(5,7)), m2 = Number(last.id.slice(5,7));
+  if (y1 === y2) return y1 + '年' + m1 + '—' + m2 + '月';
+  return first.name + '—' + last.name;
+}
+
+/* 数据来源用：2026年7月、8月 */
+function monthListLabel(){
+  var ms = DATA.months;
+  if (!ms.length) return '—';
+  var y = ms[0].id.slice(0,4);
+  var sameYear = true;
+  for (var i=0;i<ms.length;i++) if (ms[i].id.slice(0,4) !== y) sameYear = false;
+  if (sameYear) {
+    var parts = [];
+    for (var j=0;j<ms.length;j++) parts.push(Number(ms[j].id.slice(5,7)) + '月');
+    return y + '年' + parts.join('、');
+  }
+  return ms.map(function(m){ return m.name; }).join('、');
+}
+
+/* 恰好是完整一个季度（如 7/8/9 月）才叫「季度合计」，否则叫「累计合计」 */
+function quarterTitle(){
+  var ms = DATA.months;
+  if (ms.length === 3){
+    var y = ms[0].id.slice(0,4), m0 = Number(ms[0].id.slice(5,7));
+    var starts = [1,4,7,10];
+    if (starts.indexOf(m0) >= 0) {
+      var ok = true;
+      for (var i=0;i<3;i++){
+        if (ms[i].id !== y + '-' + String(m0+i).padStart(2,'0')) ok = false;
+      }
+      if (ok) return '季度合计';
+    }
+  }
+  return '累计合计';
+}
+
+/* ================= 顶部月份按钮 ================= */
+function buildTabs(){
+  var h = '';
+  for (var i=0;i<DATA.months.length;i++){
+    var m = DATA.months[i];
+    h += '<button class="mtab" role="tab" data-i="'+i+'" aria-selected="false">'
+       +   '<span class="m1">'+esc(m.tab)+'</span>'
+       +   '<span class="m2">'+esc(m.archive.total ? '建档 '+m.archive.total : m.name)+'</span>'
+       + '</button>';
+  }
+  $('mtabs').innerHTML = h;
+}
+
+/* ================= 单月内容 ================= */
+function monthHTML(m){
+  var i = DATA.months.indexOf(m);
+
+  /* --- 概览 KPI --- */
+  var h = '<section class="sec">'
+        +   '<div class="hero">'
+        +     '<div class="hero-hd">'
+        +       '<span class="ttl">'+esc(m.name)+' · 服务概览</span>'
+        +       '<span class="pill">莲花社区</span>'
+        +     '</div>'
+        +     '<div class="kpis">'
+        +       kpi('c1','居家养老服务','','served')
+        +       kpi('c2','其中澳门长者','','macau')
+        +       kpi('c3','累计建档长者','','archive')
+        +       kpi('c4','健康午餐','','lunch')
+        +     '</div>'
+        +     '<div class="hero-note">'
+        +       '截至本月末，累计为60岁及以上 <b>'+num(m.archive.total)+'</b> 名长者建档，'
+        +       '其中澳门长者 <b>'+num(m.archive.macau)+'</b> 名、香港长者 <b>'+num(m.archive.hk)+'</b> 名；'
+        +       '档案中80岁以上长者 <b>'+num(m.archive.age80)+'</b> 名。'
+        +     '</div>'
+        +   '</div>'
+        + '</section>';
+
+  /* --- 服务构成 --- */
+  var max = 0, k;
+  for (k=0;k<m.mix.length;k++) if (m.mix[k][1] > max) max = m.mix[k][1];
+  if (max <= 0) max = 1;
+
+  h += '<section class="sec">'
+    +   '<div class="sec-hd"><span class="bar"></span><h2>主要服务构成</h2><span class="sub">简报所列项目</span></div>'
+    +   '<div class="card"><ul class="mix">';
+  for (k=0;k<m.mix.length;k++){
+    var w = Math.max(4, Math.round(m.mix[k][1] / max * 100));
+    h += '<li>'
+      +   '<div class="row"><span class="nm">'+esc(m.mix[k][0])+'</span>'
+      +   '<span class="vl">'+num(m.mix[k][1])+'<small>人次</small></span></div>'
+      +   '<div class="track"><div class="fill" style="width:'+w+'%"></div></div>'
+      + '</li>';
+  }
+  h += '</ul><div class="foot-note">以上为当月《工作简报》明确列出的服务项目人次；'
+     + '各项之外仍含其他类别服务，故合计不等于当月服务总人次。</div></div></section>';
+
+  /* --- 恒常服务 --- */
+  h += '<section class="sec">'
+    +   '<div class="sec-hd"><span class="bar"></span><h2>恒常服务</h2></div>'
+    +   '<div class="card"><div class="chips">';
+  for (k=0;k<m.services.length;k++) h += '<span class="chip">'+esc(m.services[k])+'</span>';
+  h += '</div></div></section>';
+
+  /* --- 活动精选 --- */
+  h += '<section class="sec">'
+    +   '<div class="sec-hd"><span class="bar"></span><h2>活动精选</h2>'
+    +   '<span class="sub">'+m.acts.length+' 项</span></div>'
+    +   '<div class="agrid">';
+  for (k=0;k<m.acts.length;k++) h += actHTML(m.acts[k], i, k);
+  h += '</div>';
+
+  if (m.others && m.others.length){
+    h += '<div class="act-others"><div class="ohd">当月其他活动</div><ul class="mix" style="list-style:none">';
+    for (k=0;k<m.others.length;k++){
+      h += '<li style="display:flex;gap:9px;align-items:flex-start;margin-bottom:7px">'
+        +    '<span style="flex:0 0 6px;width:6px;height:6px;border-radius:50%;background:#C9C2B4;margin-top:9px"></span>'
+        +    '<span style="font-size:14.5px;color:#5F5E5A;line-height:1.65">'+esc(m.others[k])+'</span></li>';
+    }
+    h += '</ul></div>';
+  }
+  h += '</section>';
+
+  return h;
+
+  /* KPI 生成器 */
+  function kpi(cls, label, unit, key){
+    var v=0, sub='', u=unit;
+    if (key==='served'){ v=m.served; u='人次'; sub='琴澳两地长者'; }
+    if (key==='macau'){ v=m.macau; u='人次'; sub='占当月服务 '+(m.served? (m.macau/m.served*100).toFixed(1):'0.0')+'%'; }
+    if (key==='archive'){ v=m.archive.total; u='名'; sub='澳门 '+num(m.archive.macau)+' · 香港 '+num(m.archive.hk)+' 名'; }
+    if (key==='lunch'){ v=m.lunch.meals; u='餐次'; sub='澳门长者 '+num(m.lunch.macau)+' 人次'; }
+    return '<div class="kpi '+cls+'">'
+      + '<div class="kl">'+esc(label)+'</div>'
+      + '<div class="kv">'+num(v)+'<small>'+esc(u)+'</small></div>'
+      + '<div class="ks">'+esc(sub)+'</div>'
+      + '</div>';
+  }
+}
+
+/* 单张活动卡 */
+function actHTML(a, mi, ai){
+  var h = '<article class="act">';
+
+  if (a.photos && a.photos.length){
+    h += '<div class="act-ph" data-mi="'+mi+'" data-ai="'+ai+'" role="button" tabindex="0" aria-label="查看大图">'
+      +    '<img src="'+esc(a.photos[0])+'" alt="'+esc(a.name)+'" loading="lazy" decoding="async">'
+      +    '<span class="mtag">'+esc(DATA.months[mi].tab)+'</span>'
+      +    (a.photos.length>1 ? '<span class="badge">共 '+a.photos.length+' 张 · 点击查看</span>'
+                                : '<span class="badge">点击看大图</span>')
+      +  '</div>';
+  } else {
+    h += '<div class="act-ph noimg">'
+      +    '<svg class="wm" viewBox="0 0 100 100" aria-hidden="true">'
+      +      '<circle cx="50" cy="50" r="48" fill="#D85A30"/>'
+      +      '<path d="M50 22c7 9 11 19 11 28 0 6-2 11-5 15h-12c-3-4-5-9-5-15 0-9 4-19 11-28z" fill="#fff"/>'
+      +      '<path d="M28 42c9 2 16 7 20 14 2 3 3 6 3 9l-9 4c-3-4-7-9-11-14-3-4-5-8-6-11z" fill="#fff"/>'
+      +      '<path d="M72 42c-9 2-16 7-20 14-2 3-3 6-3 9l9 4c3-4 7-9 11-14 3-4 5-8 6-11z" fill="#fff"/>'
+      +    '</svg>'
+      +    '<div class="nbox">'
+      +      '<svg class="nicon" viewBox="0 0 24 24" fill="none" stroke="#B4552F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+      +        '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.6" cy="9.6" r="1.6"/>'
+      +        '<path d="M21 16l-4.6-4.6L6 21"/></svg>'
+      +      '<div class="ntxt">本月简报未附现场照片</div>'
+      +      '<div class="nsub">活动详情见下方文字记录</div>'
+      +    '</div>'
+      +    '<span class="mtag">'+esc(DATA.months[mi].tab)+'</span>'
+      +  '</div>';
+  }
+
+  h += '<div class="act-bd">'
+    +    '<span class="act-tag '+(a.tagType||'')+'">'+esc(a.tag)+'</span>'
+    +    '<h3 class="act-name">'+esc(a.name)+'</h3>'
+    +    '<div class="act-meta">'+esc(a.meta)+'</div>'
+    +    '<p class="act-desc">'+esc(a.desc)+'</p>'
+    +  '</div>'
+    + '</article>';
+  return h;
+}
+
+/* ================= 累计合计 ================= */
+function buildQuarter(){
+  var tot=0, totMacau=0, acts=0, lunch=0;
+  for (var i=0;i<DATA.months.length;i++){
+    tot += DATA.months[i].served;
+    totMacau += DATA.months[i].macau;
+    acts += DATA.months[i].acts.length;
+    lunch += DATA.months[i].lunch.meals;
+  }
+  var last = DATA.months[DATA.months.length-1];
+  var n = DATA.months.length;
+
+  $('qServed').innerHTML = num(tot)+'<small>人次</small>';
+  $('qServedSub').textContent = rangeLabel()+' 累计 · 平均每月 '+num(Math.round(tot/n))+' 人次';
+
+  $('qgrid').innerHTML =
+      qbox('澳门长者服务', num(totMacau), '人次', '占总量 '+(tot? (totMacau/tot*100).toFixed(1):'0.0')+'%')
+    + qbox('累计建档长者', num(last.archive.total), '名', '截至'+last.tab+'末 · 澳门 '+num(last.archive.macau)+' 名')
+    + qbox('健康午餐服务', num(lunch), '餐次', '琴澳长者助餐配餐')
+    + qbox('活动精选收录', String(acts), '项', n+' 个月合计');
+
+  $('chartA').innerHTML = barChart('served');
+  $('chartB').innerHTML = barChart('macau');
+  $('srcNote').textContent = DATA.srcNote || ('横琴居家养老服务中心《工作简报》' + monthListLabel());
+  $('updNote').textContent = '页面更新日期：'+DATA.updated;
+
+  /* 标题 / 副标题全部由 DATA.months 推导，增删月份不用手改 */
+  document.title = (DATA.title || '莲花社区居家养老服务中心 · 服务工作简报')
+                 + '（' + rangeLabel() + '）';
+  $('orgRange').textContent = rangeLabel();
+  $('qRange').textContent = rangeLabel() + '累计';
+  var qh = document.querySelector('#qsec .sec-hd h2');
+  if (qh) qh.textContent = quarterTitle();
+
+  function qbox(l,v,u,s){
+    return '<div class="qbox"><div class="ql">'+esc(l)+'</div>'
+      + '<div class="qv">'+esc(v)+'<small>'+esc(u)+'</small></div>'
+      + '<div class="ks" style="font-size:12.5px;color:#888780;line-height:1.4;margin-top:1px">'+esc(s)+'</div></div>';
+  }
+}
+
+/* 纯 SVG 柱状图（不依赖任何外部库） */
+function barChart(key){
+  var W=340, H=200, padL=8, padR=8, padT=30, padB=42;
+  var n=DATA.months.length, max=0, i;
+  for (i=0;i<n;i++) if (DATA.months[i][key] > max) max = DATA.months[i][key];
+  if (max<=0) max=1;
+  max = max * 1.18;                       /* 顶部留白，柱子不顶格 */
+
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+  var slot = plotW / n;
+  var bw = Math.min(52, slot * 0.52);
+  var cols = ['#F0997B','#EF9F27','#0F6E56'];
+
+  var s = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="各月对比柱状图">';
+  /* 基线 */
+  s += '<line x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH)+'" stroke="#E8E4DC" stroke-width="2"/>';
+  /* 三条浅网格线 */
+  for (i=1;i<=3;i++){
+    var gy = padT + plotH - plotH*i/3.4;
+    s += '<line x1="'+padL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+gy.toFixed(1)+'" stroke="#F0EBE1" stroke-width="1.5"/>';
+  }
+
+  for (i=0;i<n;i++){
+    var v = DATA.months[i][key];
+    var bh = Math.max(3, Math.round(v / max * plotH));
+    var cx = padL + slot*i + slot/2;
+    var x  = cx - bw/2;
+    var y  = padT + plotH - bh;
+    var c  = cols[i % cols.length];
+    s += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="7" fill="'+c+'"/>';
+    s += '<text x="'+cx.toFixed(1)+'" y="'+(y-8).toFixed(1)+'" text-anchor="middle" font-size="16" font-weight="700" fill="#2C2C2A" font-family="inherit">'+num(v)+'</text>';
+    s += '<text x="'+cx.toFixed(1)+'" y="'+(padT+plotH+22)+'" text-anchor="middle" font-size="14" font-weight="600" fill="#5F5E5A" font-family="inherit">'+esc(DATA.months[i].tab)+'</text>';
+    if (key==='macau'){
+      var pct = DATA.months[i].served ? (v/DATA.months[i].served*100).toFixed(1) : '0.0';
+      s += '<text x="'+cx.toFixed(1)+'" y="'+(padT+plotH+38)+'" text-anchor="middle" font-size="12" fill="#888780" font-family="inherit">占 '+pct+'%</text>';
+    }
+  }
+  s += '</svg>';
+  return s;
+}
+
+/* ==================================================================
+   本场活动门户 —— 与签到页的连接
+   ------------------------------------------------------------------
+   签到页把活动信息存在 localStorage 键 lotus_session_v1 里，
+   签到记录存在 lotus_records_v1 里。
+
+   ⚠ 关键前提：localStorage 按「来源」隔离。
+     · 两个页面部署在同一网站（同域名）→ 能读到，门户自动显示真实活动
+     · 分别用 file:// 打开 或 跨域 → 读不到，自动降级为占位文案
+   跨域时不做报错，因为这是预期行为而非故障。
+   ================================================================== */
+var LS_SESSION = 'lotus_session_v1';
+var LS_RECORDS = 'lotus_records_v1';
+var LS_DEVICE  = 'lotus_device_v1';
+var LS_LINK    = 'lotus_brief_link';   /* 签到页上线时留下的标记 */
+
+function readJSON(key){
+  try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+  catch (e) { return null; }
+}
+function todayISO(){
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+/* 门户里显示的两行元信息 */
+function metaItems(sess){
+  return [
+    { t: sess.time  || DATA.actFallback.time,  d:'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z' },
+    { t: sess.place || DATA.actFallback.place, d:'M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z M12 10.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z' }
+  ];
+}
+
+/* ==================================================================
+   签到页入口地址 —— 自动探测
+   ------------------------------------------------------------------
+   签到页可能「并排」也可能「嵌在简报页文件夹里」，页面自己试哪个能开。
+   结果只探一次并缓存。
+
+   注意竞态：探测是异步的，如果长者恰好在探测完成前就点了按钮，
+   可能点到还没验证的地址。所以点击时若仍未确定，就先拦下，
+   等探测出结果再跳转 —— 不会把人送到 404。
+   ================================================================== */
+var _checkinURL  = null;   /* 探测到的可用地址 */
+var _checkinWait = null;   /* 探测中的 Promise */
+
+function checkinCandidates(){
+  if (DATA.checkinUrl) return [DATA.checkinUrl];                  /* 指定了绝对网址就只用它 */
+  var list = DATA.checkinCandidates && DATA.checkinCandidates.length
+    ? DATA.checkinCandidates.slice()
+    : [DATA.checkinPath];
+  if (DATA.checkinPath && list.indexOf(DATA.checkinPath) < 0) list.unshift(DATA.checkinPath);
+  return list;
+}
+
+function resolveCheckin(){
+  if (_checkinURL) return Promise.resolve(_checkinURL);
+  var list = checkinCandidates();
+  /* 绝对网址，或 file:// 本地打开（并排结构必然成立）—— 无需探测 */
+  if (DATA.checkinUrl || location.protocol === 'file:'){
+    _checkinURL = list[0];
+    return Promise.resolve(_checkinURL);
+  }
+  if (_checkinWait) return _checkinWait;
+
+  _checkinWait = new Promise(function(resolve){
+    var i = 0;
+    (function next(){
+      if (i >= list.length){                       /* 全不可达：退回第一个，按钮保持可点 */
+        _checkinURL = list[0]; resolve(_checkinURL); return;
+      }
+      var url = list[i++];
+      try {
+        fetch(url, { method:'HEAD' })
+          .then(function(r){ if (r.ok){ _checkinURL = url; resolve(url); } else next(); })
+          .catch(next);
+      } catch (e) { next(); }
+    })();
+  });
+  return _checkinWait;
+}
+
+function buildPortal(){
+  var btn = $('pBtn');
+  btn.setAttribute('href', 'checkin.html');
+
+  /* 每次重建都先复位徽标样式（buildPortal 会被 focus 事件重复调用） */
+  var sync = $('pSync');
+  sync.style.color = '';
+  sync.style.background = '';
+  sync.style.borderColor = '';
+
+  $('pTitle').textContent = '长者活动签到';
+  $('pBtnTx').textContent = '进入签到';
+
+  /* 先用占位元信息渲染，避免等待云端时空窗 */
+  var ph = '';
+  metaItems(DATA.actFallback).forEach(function(m){
+    ph += '<span class="pitem">'
+      +    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+m.d+'"/></svg>'
+      +    '<span>'+esc(m.t)+'</span></span>';
+  });
+  $('pMeta').innerHTML = ph;
+  $('pCount').textContent = '正在同步本场活动…';
+  $('pHint').textContent = '点上方按钮打开签到页，输入手机号后四位即可签到。';
+
+  var sb = getSupabase();
+  if (!sb){
+    sync.textContent = '未连接';
+    sync.style.background = 'var(--amber-x)';
+    sync.style.borderColor = '#F7DFAE';
+    sync.style.color = '#6B4409';
+    $('pCount').textContent = '本场活动与签到人数将在云端连接后显示';
+    $('pHint').textContent = '云端未连接，请检查配置。';
+    return;
+  }
+
+  /* 从云端读取「本场活动」与「已签到人数」 */
+  sb.from('activities').select('*').eq('is_current', true)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle()
+    .then(function(r){
+      if (r.error){ console.error(r.error); return; }
+      var act = r.data;
+      if (act){
+        sync.textContent = '已同步';
+        sync.style.color = 'var(--teal)';
+        sync.style.background = 'var(--teal-x)';
+        sync.style.borderColor = '#BFE4D6';
+        $('pTitle').textContent = act.title || '长者活动签到';
+        var h = '';
+        metaItems({ time: act.time || DATA.actFallback.time, place: act.location || DATA.actFallback.place }).forEach(function(m){
+          h += '<span class="pitem">'
+            +    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+m.d+'"/></svg>'
+            +    '<span>'+esc(m.t)+'</span></span>';
+        });
+        $('pMeta').innerHTML = h;
+        sb.from('checkins').select('*', { count: 'exact', head: true }).eq('activity_id', act.id).then(function(c){
+          $('pCount').innerHTML = '本场已签到 <b>' + (c.count || 0) + '</b> 位街坊';
+        });
+        /* 报名按钮可用性由「本场活动是否开放报名」决定 */
+        window.__currentActivity = act;
+        if ($('pRegBtn')) $('pRegBtn').style.opacity = act.registration_enabled ? '1' : '.55';
+      } else {
+        sync.textContent = '待更新';
+        sync.style.background = 'var(--amber-x)';
+        sync.style.borderColor = '#F7DFAE';
+        sync.style.color = '#6B4409';
+        $('pCount').textContent = '今天还没有设置本场活动';
+        $('pHint').textContent = '请工作人员在后台设置本场活动后再签到或报名。';
+        window.__currentActivity = null;
+      }
+    });
+}
+
+/* ================= 交互 ================= */
+var cur = 0;
+
+function showMonth(i){
+  cur = i;
+  $('mpanel').innerHTML = monthHTML(DATA.months[i]);
+  var ts = document.querySelectorAll('#mtabs .mtab');
+  for (var k=0;k<ts.length;k++){
+    var on = (k===i);
+    ts[k].className = 'mtab' + (on?' on':'');
+    ts[k].setAttribute('aria-selected', on ? 'true':'false');
+  }
+}
+
+/* ---- 灯箱 ---- */
+var LB = { list:[], i:0, cap:'' };
+
+function openLB(mi, ai){
+  var a = DATA.months[mi].acts[ai];
+  LB.list = a.photos.slice();
+  LB.cap  = a.name;
+  LB.i    = 0;
+  preloadLB();          /* 预加载全部，翻页时不留白 */
+  renderLB();
+  $('lb').className = 'lb on';
+  document.body.style.overflow = 'hidden';
+}
+/* 预先解码本组图片，避免翻页后出现短暂空白 */
+function preloadLB(){
+  for (var k=0;k<LB.list.length;k++){
+    var im = new Image();
+    im.decoding = 'sync';
+    im.src = LB.list[k];
+  }
+}
+function renderLB(){
+  $('lbImg').src = LB.list[LB.i];
+  $('lbImg').alt = LB.cap;
+  $('lbCap').textContent = LB.cap;
+  $('lbIdx').textContent = (LB.i+1) + ' / ' + LB.list.length;
+  var many = LB.list.length > 1;
+  $('lbPrev').hidden = !many;
+  $('lbNext').hidden = !many;
+}
+function closeLB(){
+  $('lb').className = 'lb';
+  $('lbImg').src = '';
+  document.body.style.overflow = '';
+}
+function stepLB(d){
+  var n = LB.list.length;
+  if (n<2) return;
+  LB.i = (LB.i + d + n) % n;
+  renderLB();
+}
+
+/* ================= 事件绑定 ================= */
+document.addEventListener('click', function(e){
+  /* 签到按钮：地址若尚未探测完成，先拦下，等结果出来再跳，避免跳到 404 */
+  var pb = e.target.closest ? e.target.closest('#pBtn') : null;
+  if (pb && !_checkinURL){
+    e.preventDefault();
+    resolveCheckin().then(function(url){ location.href = url; });
+    return;
+  }
+  /* 月份切换 */
+  var t = e.target.closest ? e.target.closest('#mtabs .mtab') : null;
+  if (t){
+    var i = parseInt(t.getAttribute('data-i'),10);
+    if (!isNaN(i) && i !== cur) showMonth(i);
+    return;
+  }
+  /* 看大图 */
+  var ph = e.target.closest ? e.target.closest('.act-ph[data-mi]') : null;
+  if (ph){
+    openLB(parseInt(ph.getAttribute('data-mi'),10), parseInt(ph.getAttribute('data-ai'),10));
+    return;
+  }
+  /* 灯箱控制 */
+  if (e.target.id === 'lb') { closeLB(); return; }
+  if (e.target.id === 'lbClose') { closeLB(); return; }
+  if (e.target.id === 'lbPrev') { stepLB(-1); return; }
+  if (e.target.id === 'lbNext') { stepLB(1); return; }
+});
+
+document.addEventListener('keydown', function(e){
+  if ($('lb').className.indexOf('on') < 0) return;
+  if (e.key === 'Escape') closeLB();
+  if (e.key === 'ArrowLeft') stepLB(-1);
+  if (e.key === 'ArrowRight') stepLB(1);
+});
+
+/* 触屏左右滑动看图 */
+(function(){
+  var x0 = null;
+  var lb = $('lb');
+  lb.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+  lb.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    x0 = null;
+    if (Math.abs(dx) > 45) stepLB(dx < 0 ? 1 : -1);
+  }, {passive:true});
+})();
+
+/* ================= 启动 ================= */
+buildPortal();
+buildTabs();
+showMonth(DATA.months.length - 1);   /* 默认展示最新月份 */
+buildQuarter();
+
+/* 从签到页返回时（浏览器缓存恢复），人数可能已变 —— 重新读一次 */
+window.addEventListener('pageshow', function(e){ if (e.persisted) buildPortal(); });
+window.addEventListener('focus', buildPortal);
+</script>
+
+<script src="js/register.js"></script>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="on"><span class="ico">🏠</span>首页</a>
+  <a href="checkin.html"><span class="ico">✅</span>签到</a>
+  <a href="mine.html"><span class="ico">👤</span>我的</a>
+</nav>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# 部署时排除源码与配置目录，只发布前端页面
+sql/
+supabase/
+README.md

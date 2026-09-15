@@ -1,0 +1,11 @@
+# Netlify 本地构建/部署缓存
+.netlify/
+
+# macOS
+.DS_Store
+
+# 依赖
+node_modules/
+
+# Supabase CLI 本地缓存/状态
+supabase/.temp/

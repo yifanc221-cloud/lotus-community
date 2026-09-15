@@ -111,8 +111,8 @@
   function close() { mask.classList.remove('on'); }
 
   async function doSubmit() {
-    if (busy) return;
     if (done) { close(); return; }
+    if (busy) return;
     showErr('');
     var sb = getSupabase();
     if (!sb) { showErr('未连接云端，请检查配置'); return; }

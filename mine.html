@@ -33,12 +33,15 @@
   <!-- 身份识别 -->
   <section class="card" id="identifyCard">
     <div class="card-hd"><span class="dot"></span><h2>查看我的活动</h2></div>
-    <p class="hint">输入手机号后四位，即可查看您的活动照片与记录。</p>
+    <p class="hint">输入手机号后四位和姓名，即可查看您的活动照片与记录。</p>
     <div class="field mt14">
       <label for="mPin">手机号后四位</label>
       <input id="mPin" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
     </div>
-    <div id="mPick" class="mt8" style="display:none"></div>
+    <div class="field mt14">
+      <label for="mName">姓名</label>
+      <input id="mName" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
+    </div>
     <button id="identifyBtn" class="btn btn-primary btn-block btn-lg">查看</button>
   </section>
 
@@ -98,6 +101,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/common.js"></script>
-<script src="js/mine.js"></script>
+<script src="js/mine.js?v=20260915"></script>
 </body>
 </html>

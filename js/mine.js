@@ -6,33 +6,29 @@
   var $ = function (id) { return document.getElementById(id); };
   var me = null;
 
-  // 识别身份：后四位 → 若多人则点选（不要求姓名完全一致）
+  // 识别身份：手机号后四位 + 姓名，精确匹配
   async function identify() {
     var pin = $('mPin').value.trim();
-    if (!validPin(pin)) { toast('请输入手机号后四位', 'error'); return; }
+    var name = $('mName').value.trim();
+    if (!validPin(pin)) { toast('请输入手机号后四位', 'error'); $('mPin').focus(); return; }
+    if (!name) { toast('请输入姓名', 'error'); $('mName').focus(); return; }
     if (!sb) { toast('未连接云端，请检查配置', 'error'); return; }
 
-    $('mPick').style.display = 'none';
-    var list = await findResidentsByPin(pin);
-    if (list === null) { toast('网络异常，请重试', 'error'); return; }
-
-    if (list.length === 0) {
-      toast('未找到您的档案，请先参加一次活动完成登记', 'error');
-    } else if (list.length === 1) {
-      setMe(list[0]);
+    var { data, error } = await sb.from('residents')
+      .select('id,pin,name')
+      .eq('pin', pin).eq('name', name)
+      .maybeSingle();
+    if (error) { toast('网络异常，请重试', 'error'); return; }
+    if (!data) {
+      toast('未找到匹配的档案，请确认手机号后四位和姓名', 'error');
     } else {
-      $('mPick').innerHTML = '<p class="hint">该后四位对应多位街坊，请点选您的名字：</p>' +
-        list.map(function (r) {
-          return '<button class="btn btn-line btn-block" style="margin-bottom:8px" data-id="' + r.id + '" data-name="' + esc(r.name) + '" data-pin="' + r.pin + '">' + esc(r.name) + '</button>';
-        }).join('');
-      $('mPick').style.display = 'block';
+      setMe(data);
     }
   }
 
   function setMe(resident) {
     me = resident;
     $('identifyCard').style.display = 'none';
-    $('mPick').style.display = 'none';
     $('result').style.display = 'block';
     $('whoami').textContent = resident.name;
     $('whoami').style.display = 'block';
@@ -121,16 +117,12 @@
   }
 
   $('identifyBtn').addEventListener('click', identify);
-  $('mPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') identify(); });
-  $('mPick').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-id]');
-    if (!b) return;
-    setMe({ id: b.getAttribute('data-id'), name: b.getAttribute('data-name'), pin: b.getAttribute('data-pin') });
-  });
+  $('mPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('mName').focus(); });
+  $('mName').addEventListener('keydown', function (e) { if (e.key === 'Enter') identify(); });
   $('switchBtn').addEventListener('click', function () {
     me = null;
     $('mPin').value = '';
-    $('mPick').innerHTML = ''; $('mPick').style.display = 'none';
+    $('mName').value = '';
     $('result').style.display = 'none';
     $('identifyCard').style.display = 'block';
     $('whoami').style.display = 'none';

@@ -158,6 +158,7 @@
     pinEl.style.display = 'none';
     nameEl.style.display = 'none';
     submit.textContent = '完成';
+    submit.disabled = false;
     done = true;
     toast('报名成功');
     busy = false;

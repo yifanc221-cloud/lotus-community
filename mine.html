@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#D85A30">
 <title>莲花社区服务点 · 我的活动</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20260915">
 </head>
 <body class="has-nav">
 
@@ -35,14 +35,13 @@
     <div class="card-hd"><span class="dot"></span><h2>查看我的活动</h2></div>
     <p class="hint">输入手机号后四位和姓名，即可查看您的活动照片与记录。</p>
     <div class="field mt14">
-      <label for="mPin">手机号后四位</label>
-      <input id="mPin" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
+      <label for="mPin">手机号后四位 + 姓名</label>
+      <div class="login-inline">
+        <input id="mPin" class="input login-pin" type="tel" inputmode="numeric" maxlength="4" placeholder="后四位" autocomplete="off">
+        <input id="mName" class="input login-name" type="text" maxlength="20" placeholder="姓名" autocomplete="off">
+      </div>
     </div>
-    <div class="field mt14">
-      <label for="mName">姓名</label>
-      <input id="mName" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
-    </div>
-    <button id="identifyBtn" class="btn btn-primary btn-block btn-lg">查看</button>
+    <button id="identifyBtn" class="btn btn-primary btn-block btn-lg">登录</button>
   </section>
 
   <!-- 识别结果 -->
@@ -101,6 +100,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/common.js"></script>
-<script src="js/mine.js?v=20260915"></script>
+<script src="js/mine.js?v=20260915b"></script>
 </body>
 </html>

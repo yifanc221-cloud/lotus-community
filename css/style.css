@@ -79,6 +79,9 @@ img { display: block; max-width: 100%; }
 }
 .input:focus, .select:focus, textarea.input:focus { border-color: var(--coral-l); box-shadow: 0 0 0 3px var(--coral-x); }
 .input.big { font-size: 28px; text-align: center; letter-spacing: .35em; font-weight: 700; }
+.login-inline { display: flex; gap: 10px; }
+.login-inline .login-pin { flex: 0 0 40%; text-align: center; letter-spacing: .18em; font-size: 20px; font-weight: 700; }
+.login-inline .login-name { flex: 1; }
 textarea.input { min-height: 80px; resize: vertical; }
 .hint { font-size: 13px; color: var(--ink3); margin-top: 5px; }
 

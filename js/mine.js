@@ -7,22 +7,29 @@
   var me = null;
 
   // 识别身份：手机号后四位 + 姓名，精确匹配
+  var identifying = false;
   async function identify() {
+    if (identifying) return;
     var pin = $('mPin').value.trim();
     var name = $('mName').value.trim();
     if (!validPin(pin)) { toast('请输入手机号后四位', 'error'); $('mPin').focus(); return; }
     if (!name) { toast('请输入姓名', 'error'); $('mName').focus(); return; }
     if (!sb) { toast('未连接云端，请检查配置', 'error'); return; }
 
-    var { data, error } = await sb.from('residents')
-      .select('id,pin,name')
-      .eq('pin', pin).eq('name', name)
-      .maybeSingle();
-    if (error) { toast('网络异常，请重试', 'error'); return; }
-    if (!data) {
-      toast('未找到匹配的档案，请确认手机号后四位和姓名', 'error');
-    } else {
-      setMe(data);
+    identifying = true;
+    try {
+      var { data, error } = await sb.from('residents')
+        .select('id,pin,name')
+        .eq('pin', pin).eq('name', name)
+        .maybeSingle();
+      if (error) { toast('网络异常，请重试', 'error'); return; }
+      if (!data) {
+        toast('未找到匹配的档案，请确认手机号后四位和姓名', 'error');
+      } else {
+        setMe(data);
+      }
+    } finally {
+      identifying = false;
     }
   }
 
@@ -119,6 +126,7 @@
   $('identifyBtn').addEventListener('click', identify);
   $('mPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('mName').focus(); });
   $('mName').addEventListener('keydown', function (e) { if (e.key === 'Enter') identify(); });
+  $('mName').addEventListener('blur', function () { if ($('mName').value.trim()) identify(); });
   $('switchBtn').addEventListener('click', function () {
     me = null;
     $('mPin').value = '';

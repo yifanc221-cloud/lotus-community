@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D85A30">
+<title>莲花社区服务点 · 活动列表</title>
+<link rel="stylesheet" href="css/style.css?v=20260916">
+<style>
+.act-card{display:flex;align-items:center;gap:12px;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:15px 15px;margin-bottom:10px;cursor:pointer;transition:transform .08s}
+.act-card:active{transform:scale(.985)}
+.act-main{flex:1;min-width:0}
+.act-top{margin-bottom:7px}
+.act-badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}
+.act-badge.b-cur{background:var(--coral-x);color:var(--coral)}
+.act-badge.b-reg{background:var(--teal-x);color:var(--teal)}
+.act-badge.b-mut{background:#EFECE4;color:var(--ink3)}
+.act-title{font-size:17px;font-weight:700;color:var(--ink);line-height:1.4}
+.act-meta{font-size:13px;color:var(--ink3);margin-top:5px;line-height:1.5}
+.act-go{font-size:26px;color:#C9C3B6;font-weight:600;flex:0 0 auto}
+
+/* ===== 弹窗通用 ===== */
+.mask{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(44,44,42,.5)}
+.mask.on{display:flex}
+.box{background:var(--paper);width:100%;max-width:400px;border-radius:20px;padding:20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);max-height:86vh;overflow-y:auto}
+
+/* ===== 活动详情 ===== */
+.d-hd{display:flex;align-items:center;margin-bottom:10px}
+.d-hd .rt{font-size:19px;font-weight:800;color:var(--ink);min-width:0}
+.d-hd .rc{margin-left:auto;width:34px;height:34px;border:none;border-radius:50%;background:#EFECE4;color:var(--ink2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 34px}
+.d-title{font-size:21px;font-weight:800;color:var(--ink);line-height:1.4}
+.d-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.d-pill{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#8E3618;background:#FFF4EC;border:1.5px solid #F3C6B2;border-radius:9px;padding:5px 11px;line-height:1.4}
+.d-desc{font-size:15px;color:var(--ink2);line-height:1.7;margin-top:14px;white-space:pre-wrap}
+.way{margin-top:14px;background:var(--teal-x);border:1.5px solid #BFE4D6;border-radius:14px;padding:12px 14px}
+.way-hd{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:6px}
+.way-row{font-size:14px;color:var(--ink2);line-height:1.6}
+.way-row b{color:var(--ink);font-variant-numeric:tabular-nums}
+.d-btns{margin-top:16px}
+.d-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:54px;border:none;border-radius:14px;color:#fff;font-size:19px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.d-btn:active{transform:translateY(2px)}
+.d-btn-reg{background:linear-gradient(160deg,var(--teal) 0%,#0B5B47 100%);border-bottom:4px solid #084A39}
+.d-btn-chk{background:linear-gradient(160deg,var(--coral) 0%,#C24A24 100%);border-bottom:4px solid #A83F1D;margin-top:10px}
+.d-btn[disabled]{opacity:.5;cursor:not-allowed}
+.d-note{margin-top:12px;text-align:center;font-size:13px;color:var(--ink3)}
+
+/* ===== 报名弹窗（复用首页样式） ===== */
+.reg-hd{display:flex;align-items:center;margin-bottom:10px}
+.reg-hd .rt{font-size:19px;font-weight:800;color:var(--ink)}
+.reg-hd .rc{margin-left:auto;width:34px;height:34px;border:none;border-radius:50%;background:#EFECE4;color:var(--ink2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.reg-sub{font-size:13.5px;color:var(--ink3);margin-bottom:14px;line-height:1.5}
+.rin{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff;outline:none;margin-bottom:12px;box-sizing:border-box}
+.rin.big{font-size:26px;text-align:center;letter-spacing:.35em;font-weight:700}
+.rin:focus{border-color:var(--coral-l);box-shadow:0 0 0 3px var(--coral-x)}
+.reg-birth{display:flex;gap:8px;margin-bottom:12px}
+.reg-birth select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:12px 8px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
+.reg-birth select:focus{border-color:var(--coral-l);box-shadow:0 0 0 3px var(--coral-x)}
+.reg-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--teal) 0%,#0B5B47 100%);border-bottom:4px solid #084A39;color:#fff;font-size:19px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
+.reg-btn:active{transform:translateY(2px)}
+.reg-btn[disabled]{opacity:.55}
+.reg-err{display:none;font-size:13.5px;color:#C0392B;margin-top:10px;text-align:center}
+.vbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:12px 14px;border:1.5px solid var(--coral-l);border-radius:14px;background:var(--coral-x);color:var(--coral);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+.vbtn:active{transform:translateY(1px)}
+.vbtn .vico{font-size:19px}
+</style>
+</head>
+<body class="has-nav">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div style="min-width:0">
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>活动列表</b><span><a href="index.html">返回首页</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+  <div class="section-title" style="margin-top:16px">近期活动 · 点开查看详情</div>
+  <div id="actList"><div class="empty">加载中…</div></div>
+</main>
+
+<!-- 活动详情弹窗 -->
+<div class="mask" id="detailMask" role="dialog" aria-modal="true" aria-label="活动详情">
+  <div class="box">
+    <div class="d-hd"><div class="rt">活动详情</div><button class="rc" id="dClose" aria-label="关闭">✕</button></div>
+    <div class="d-title" id="dTitle">—</div>
+    <div class="d-meta" id="dMeta"></div>
+    <div class="d-desc" id="dDesc" style="display:none"></div>
+    <div class="way">
+      <div class="way-hd">📋 报名方式</div>
+      <div class="way-row" id="dWay"></div>
+    </div>
+    <div class="d-btns">
+      <button class="d-btn d-btn-reg" id="dRegBtn" type="button">立即报名</button>
+      <a class="d-btn d-btn-chk" id="dChkBtn" href="checkin.html" style="display:none">去签到</a>
+    </div>
+    <div class="d-note" id="dNote"></div>
+  </div>
+</div>
+
+<!-- 报名弹窗 -->
+<div class="mask" id="regMask" role="dialog" aria-modal="true" aria-label="活动报名">
+  <div class="box">
+    <div class="reg-hd"><div class="rt">活动报名</div><button class="rc" id="regClose" aria-label="关闭">✕</button></div>
+    <div class="reg-sub" id="regSub">—</div>
+    <button class="vbtn" id="regVoice" type="button"><span class="vico">🔊</span>听语音</button>
+    <input class="rin big" id="regPin" type="tel" inputmode="numeric" maxlength="4" placeholder="手机号后四位" autocomplete="off">
+    <input class="rin" id="regName" type="text" placeholder="姓名" autocomplete="off">
+    <div class="reg-birth" id="regBirth">
+      <select data-birth="year" aria-label="出生年份"></select>
+      <select data-birth="month" aria-label="出生月份"></select>
+      <select data-birth="day" aria-label="出生日"></select>
+    </div>
+    <button class="reg-btn" id="regSubmit" type="button">确认报名</button>
+    <div class="reg-err" id="regErr"></div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="ico">🏠</span>首页</a>
+  <a href="activities.html" class="on"><span class="ico">📅</span>活动</a>
+  <a href="services.html"><span class="ico">🧩</span>服务</a>
+  <a href="mine.html"><span class="ico">👤</span>我的</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  var sb = getSupabase();
+  var acts = [];
+  var currentAct = null;      // 当前详情/报名的活动
+  var regDone = false, regBusy = false;
+
+  // ---------- 活动列表 ----------
+  async function load() {
+    if (!sb) { $('actList').innerHTML = '<div class="empty">未连接云端，请检查配置</div>'; return; }
+    var { data, error } = await sb.from('activities')
+      .select('id,title,date,time,location,description,registration_enabled,registration_deadline,capacity,is_current')
+      .order('is_current', { ascending: false })
+      .order('date', { ascending: true });
+    if (error) { console.error(error); $('actList').innerHTML = '<div class="empty">加载失败，请稍后重试</div>'; return; }
+    acts = data || [];
+    if (!acts.length) { $('actList').innerHTML = '<div class="empty"><span class="em-ico">📅</span>暂无活动，敬请期待</div>'; return; }
+    $('actList').innerHTML = acts.map(function(act, i){
+      var meta = [act.date ? fmtDate(act.date) : '', act.time || '', act.location || ''].filter(Boolean).join(' · ');
+      var b = act.is_current ? '<span class="act-badge b-cur">本场</span>'
+            : act.registration_enabled ? '<span class="act-badge b-reg">报名中</span>'
+            : '<span class="act-badge b-mut">现场参加</span>';
+      return '<div class="act-card" data-i="' + i + '">'
+        + '<div class="act-main"><div class="act-top">' + b + '</div>'
+        + '<div class="act-title">' + esc(act.title) + '</div>'
+        + (meta ? '<div class="act-meta">' + esc(meta) + '</div>' : '')
+        + '</div><div class="act-go">›</div></div>';
+    }).join('');
+  }
+
+  $('actList').addEventListener('click', function(e){
+    var card = e.target.closest('.act-card');
+    if (card) openDetail(Number(card.getAttribute('data-i')));
+  });
+
+  // ---------- 活动详情 ----------
+  function pill(txt){ return '<span class="d-pill">' + esc(txt) + '</span>'; }
+
+  function openDetail(i) {
+    var act = acts[i];
+    if (!act) return;
+    currentAct = act;
+    $('dTitle').textContent = act.title;
+    var meta = [];
+    if (act.date) meta.push(pill('🗓 ' + fmtDateFull(act.date)));
+    if (act.time) meta.push(pill('🕘 ' + act.time));
+    if (act.location) meta.push(pill('📍 ' + act.location));
+    $('dMeta').innerHTML = meta.join('');
+    $('dDesc').textContent = act.description || '';
+    $('dDesc').style.display = act.description ? '' : 'none';
+
+    // 报名方式 + 按钮状态
+    var deadline = act.registration_deadline ? fmtTime(act.registration_deadline) : '不限（到场即报）';
+    $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>名额：加载中…';
+    $('dNote').textContent = '';
+    var passed = act.registration_deadline && new Date(act.registration_deadline).getTime() < Date.now();
+
+    var regBtn = $('dRegBtn');
+    if (!act.registration_enabled) {
+      regBtn.style.display = 'none';
+      $('dNote').textContent = '本场活动无需报名，到场签到即可。';
+    } else if (passed) {
+      regBtn.style.display = 'none';
+      $('dNote').textContent = '报名已截止。';
+    } else {
+      regBtn.style.display = '';
+      regBtn.disabled = false; regBtn.textContent = '立即报名';
+    }
+
+    var chkBtn = $('dChkBtn');
+    chkBtn.style.display = act.is_current ? '' : 'none';
+
+    $('detailMask').classList.add('on');
+    loadRegCount(act);
+  }
+
+  async function loadRegCount(act) {
+    if (!sb) return;
+    var { count, error } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('activity_id', act.id);
+    if (error) { console.error(error); return; }
+    var used = count || 0;
+    var capTxt = act.capacity ? '<b>' + used + '</b> / <b>' + act.capacity + '</b> 人' : '不限 · 已报 <b>' + used + '</b> 人';
+    var deadline = act.registration_deadline ? fmtTime(act.registration_deadline) : '不限（到场即报）';
+    $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>名额：' + capTxt;
+    // 满员处理
+    if (act.registration_enabled && act.capacity && used >= act.capacity) {
+      var rb = $('dRegBtn');
+      rb.style.display = ''; rb.disabled = true; rb.textContent = '名额已满';
+      $('dNote').textContent = '本场活动名额已满。';
+    }
+  }
+
+  $('dClose').addEventListener('click', function(){ $('detailMask').classList.remove('on'); });
+  $('detailMask').addEventListener('click', function(e){ if (e.target === this) $('detailMask').classList.remove('on'); });
+  $('dRegBtn').addEventListener('click', function(){
+    if (!currentAct || this.disabled) return;
+    $('detailMask').classList.remove('on');
+    openReg(currentAct);
+  });
+
+  // ---------- 报名弹窗（通用，按活动参数化） ----------
+  function openReg(act) {
+    currentAct = act;
+    regDone = false; regBusy = false;
+    $('regPin').value = ''; $('regName').value = '';
+    $('regErr').style.display = 'none';
+    $('regSubmit').textContent = '确认报名'; $('regSubmit').disabled = false;
+    $('regPin').style.display = ''; $('regName').style.display = ''; $('regBirth').style.display = '';
+    var lines = ['活动：' + (act.title || '长者活动')];
+    if (act.date) lines.push('日期：' + fmtDate(act.date));
+    if (act.time) lines.push('时间：' + (act.time || ''));
+    if (act.location) lines.push('地点：' + (act.location || ''));
+    $('regSub').textContent = lines.join('　');
+    $('regMask').classList.add('on');
+    setTimeout(function(){ $('regPin').focus(); }, 60);
+  }
+
+  function regErr(msg){ $('regErr').textContent = msg; $('regErr').style.display = msg ? 'block' : 'none'; }
+
+  $('regClose').addEventListener('click', function(){ $('regMask').classList.remove('on'); });
+  $('regMask').addEventListener('click', function(e){ if (e.target === this) $('regMask').classList.remove('on'); });
+  $('regVoice').addEventListener('click', function(){
+    var a = currentAct;
+    var ls = ['这个活动是' + (a ? a.title : '本场活动') + '。'];
+    if (a && a.date) ls.push('日期' + fmtDate(a.date) + '。');
+    if (a && a.time) ls.push('时间' + a.time + '。');
+    if (a && a.location) ls.push('地点' + a.location + '。');
+    ls.push('请在方框里输入手机号后四位和姓名。');
+    ls.push('如果是第一次报名，还要选择出生年月日。');
+    ls.push('填好后点确认报名。');
+    speak(ls);
+  });
+
+  $('regPin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('regName').focus(); });
+  $('regName').addEventListener('keydown', function(e){ if (e.key === 'Enter') doReg(); });
+  $('regSubmit').addEventListener('click', doReg);
+
+  async function doReg() {
+    if (regDone) { $('regMask').classList.remove('on'); return; }
+    if (regBusy) return;
+    if (!sb) { regErr('未连接云端，请检查配置'); return; }
+    var act = currentAct;
+    if (!act) { regErr('请先选择活动'); return; }
+    if (!act.registration_enabled) { regErr('本场活动暂未开放报名'); return; }
+    if (act.registration_deadline && new Date(act.registration_deadline).getTime() < Date.now()) { regErr('报名已截止'); return; }
+
+    var pin = $('regPin').value.trim();
+    var name = $('regName').value.trim();
+    if (!validPin(pin)) { regErr('请输入手机号后四位'); $('regPin').focus(); return; }
+    if (!name) { regErr('请输入姓名'); $('regName').focus(); return; }
+
+    regBusy = true; $('regSubmit').disabled = true; $('regSubmit').textContent = '报名中…';
+
+    var birth = birthRead($('regBirth'));
+    var { data: exist } = await sb.from('residents').select('id').eq('pin', pin).eq('name', name).maybeSingle();
+    if (!exist && !birth) { regErr('首次报名请填写出生年月日'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
+    var resident = await ensureResident(pin, name, birth);
+    if (!resident) { regErr('报名失败，请重试'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
+
+    var { data: dup } = await sb.from('registrations').select('id').eq('activity_id', act.id).eq('resident_id', resident.id).maybeSingle();
+    if (dup) { regErr('您已报名本场活动，无需重复报名'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
+
+    if (act.capacity) {
+      var { count } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('activity_id', act.id);
+      if ((count || 0) >= act.capacity) { regErr('本场活动名额已满'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
+    }
+
+    var { error } = await sb.from('registrations').insert({ activity_id: act.id, resident_id: resident.id });
+    if (error) {
+      if (error.code === '23505') regErr('您已报名本场活动，无需重复报名');
+      else { console.error(error); regErr('报名失败，请重试'); }
+      regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return;
+    }
+
+    regErr('');
+    $('regSub').textContent = '报名成功！' + name + '，欢迎参加「' + (act.title || '本场活动') + '」。';
+    $('regPin').style.display = 'none';
+    $('regName').style.display = 'none';
+    $('regBirth').style.display = 'none';
+    $('regSubmit').textContent = '完成'; $('regSubmit').disabled = false;
+    regDone = true; regBusy = false;
+    toast('报名成功');
+  }
+
+  // 初始化
+  birthInit();
+  load();
+})();
+</script>
+</body>
+</html>

@@ -41,6 +41,14 @@
         <input id="mName" class="input login-name" type="text" maxlength="20" placeholder="姓名" autocomplete="off">
       </div>
     </div>
+    <div class="field" id="mBirthField" style="display:none">
+      <label>出生年月日（首次登录补充）</label>
+      <div class="birth-row">
+        <select class="select" data-birth="year" aria-label="出生年份"></select>
+        <select class="select" data-birth="month" aria-label="出生月份"></select>
+        <select class="select" data-birth="day" aria-label="出生日"></select>
+      </div>
+    </div>
     <button id="identifyBtn" class="btn btn-primary btn-block btn-lg">登录</button>
   </section>
 

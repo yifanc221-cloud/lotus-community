@@ -117,11 +117,6 @@
     <button class="vbtn" id="regVoice" type="button"><span class="vico">🔊</span>听语音</button>
     <input class="rin big" id="regPin" type="tel" inputmode="numeric" maxlength="4" placeholder="手机号后四位" autocomplete="off">
     <input class="rin" id="regName" type="text" placeholder="姓名" autocomplete="off">
-    <div class="reg-birth" id="regBirth">
-      <select data-birth="year" aria-label="出生年份"></select>
-      <select data-birth="month" aria-label="出生月份"></select>
-      <select data-birth="day" aria-label="出生日"></select>
-    </div>
     <button class="reg-btn" id="regSubmit" type="button">确认报名</button>
     <div class="reg-err" id="regErr"></div>
   </div>
@@ -246,7 +241,7 @@
     $('regPin').value = ''; $('regName').value = '';
     $('regErr').style.display = 'none';
     $('regSubmit').textContent = '确认报名'; $('regSubmit').disabled = false;
-    $('regPin').style.display = ''; $('regName').style.display = ''; $('regBirth').style.display = '';
+    $('regPin').style.display = ''; $('regName').style.display = '';
     var lines = ['活动：' + (act.title || '长者活动')];
     if (act.date) lines.push('日期：' + fmtDate(act.date));
     if (act.time) lines.push('时间：' + (act.time || ''));
@@ -267,7 +262,6 @@
     if (a && a.time) ls.push('时间' + a.time + '。');
     if (a && a.location) ls.push('地点' + a.location + '。');
     ls.push('请在方框里输入手机号后四位和姓名。');
-    ls.push('如果是第一次报名，还要选择出生年月日。');
     ls.push('填好后点确认报名。');
     speak(ls);
   });
@@ -292,10 +286,7 @@
 
     regBusy = true; $('regSubmit').disabled = true; $('regSubmit').textContent = '报名中…';
 
-    var birth = birthRead($('regBirth'));
-    var { data: exist } = await sb.from('residents').select('id').eq('pin', pin).eq('name', name).maybeSingle();
-    if (!exist && !birth) { regErr('首次报名请填写出生年月日'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
-    var resident = await ensureResident(pin, name, birth);
+    var resident = await ensureResident(pin, name, null);
     if (!resident) { regErr('报名失败，请重试'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
 
     var ab = await absenceStatus(resident.id);
@@ -325,7 +316,6 @@
     $('regSub').textContent = '报名成功！' + name + '，欢迎参加「' + (act.title || '本场活动') + '」。';
     $('regPin').style.display = 'none';
     $('regName').style.display = 'none';
-    $('regBirth').style.display = 'none';
     $('regSubmit').textContent = '完成'; $('regSubmit').disabled = false;
     regDone = true; regBusy = false;
     toast('报名成功');

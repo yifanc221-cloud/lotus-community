@@ -12,7 +12,6 @@
   var sub = document.getElementById('regSub');
   var pinEl = document.getElementById('regPin');
   var nameEl = document.getElementById('regName');
-  var birthEl = document.getElementById('regBirth');
   var submit = document.getElementById('regSubmit');
   var errEl = document.getElementById('regErr');
   var voiceBtn = document.getElementById('regVoice');
@@ -33,7 +32,6 @@
     if (act && act.time) lines.push('时间' + act.time + '。');
     if (act && act.location) lines.push('地点' + act.location + '。');
     lines.push('请在方框里输入手机号后四位和姓名。');
-    lines.push('如果是第一次报名，还要选择您的出生年月日。');
     lines.push('填好后点确认报名。');
     speak(lines);
   }
@@ -62,7 +60,6 @@
       submit.style.display = 'none';
       pinEl.style.display = 'none';
       nameEl.style.display = 'none';
-      if (birthEl) birthEl.style.display = 'none';
       mask.classList.add('on');
       var fetched = await fetchCurrent();
       act = fetched;
@@ -74,12 +71,10 @@
       submit.style.display = 'none';
       pinEl.style.display = 'none';
       nameEl.style.display = 'none';
-      if (birthEl) birthEl.style.display = 'none';
     } else {
       submit.style.display = '';
       pinEl.style.display = '';
       nameEl.style.display = '';
-      if (birthEl) birthEl.style.display = '';
 
       var lines = [];
       lines.push('本场活动：' + (act.title || '长者活动'));
@@ -137,15 +132,8 @@
     submit.disabled = true;
     submit.textContent = '报名中…';
 
-    // 1) 识别 / 建档（已有居民无需生日；首次建档需填出生年月日）
-    var birth = birthEl ? birthRead(birthEl) : null;
-    var { data: exist } = await sb.from('residents').select('id').eq('pin', pin).eq('name', name).maybeSingle();
-    if (!exist && !birth) {
-      showErr('首次报名请填写出生年月日');
-      busy = false; submit.disabled = false; submit.textContent = '确认报名';
-      return;
-    }
-    var resident = await ensureResident(pin, name, birth);
+    // 1) 识别 / 建档（报名不再采集出生年月日，由「我的」页首次登录时补填）
+    var resident = await ensureResident(pin, name, null);
     if (!resident) { showErr('报名失败，请重试'); busy = false; submit.disabled = false; submit.textContent = '确认报名'; return; }
 
     // 1.5) 缺勤暂停拦截

@@ -5,6 +5,7 @@
   var sb = getSupabase();
   var $ = function (id) { return document.getElementById(id); };
   var me = null;
+  var pendingBirth = false;   // 已识别但首次登录、待补出生年月日
 
   // 识别身份：手机号后四位 + 姓名，精确匹配
   var identifying = false;
@@ -18,15 +19,38 @@
 
     identifying = true;
     try {
+      // 已识别、等待补填出生年月日
+      if (pendingBirth) {
+        var birth = birthRead($('identifyCard'));
+        if (!birth) { toast('请选择出生年月日', 'error'); return; }
+        var { error: ue } = await sb.from('residents').update({ birth_date: birth }).eq('id', me.id);
+        if (ue) { toast('保存失败，请重试', 'error'); return; }
+        me.birth_date = birth;
+        pendingBirth = false;
+        $('mBirthField').style.display = 'none';
+        $('identifyBtn').textContent = '登录';
+        setMe(me);
+        return;
+      }
+
       var { data, error } = await sb.from('residents')
-        .select('id,pin,name')
+        .select('id,pin,name,birth_date')
         .eq('pin', pin).eq('name', name)
         .maybeSingle();
       if (error) { toast('网络异常，请重试', 'error'); return; }
       if (!data) {
         toast('未找到匹配的档案，请确认手机号后四位和姓名', 'error');
-      } else {
+        return;
+      }
+      me = data;
+      if (data.birth_date) {
         setMe(data);
+      } else {
+        // 首次登录：补填出生年月日
+        pendingBirth = true;
+        $('mBirthField').style.display = 'block';
+        $('identifyBtn').textContent = '保存并登录';
+        toast('首次登录，请补充出生年月日');
       }
     } finally {
       identifying = false;
@@ -139,10 +163,15 @@
   $('mName').addEventListener('blur', function () { if ($('mName').value.trim()) identify(); });
   $('switchBtn').addEventListener('click', function () {
     me = null;
+    pendingBirth = false;
     $('mPin').value = '';
     $('mName').value = '';
     $('result').style.display = 'none';
     $('identifyCard').style.display = 'block';
+    $('mBirthField').style.display = 'none';
+    $('identifyBtn').textContent = '登录';
     $('whoami').style.display = 'none';
   });
+
+  birthInit();
 })();

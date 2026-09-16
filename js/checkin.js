@@ -8,7 +8,7 @@
   var lastResult = null;
 
   var $ = function (id) { return document.getElementById(id); };
-  var steps = ['stepPin', 'stepChoose', 'stepNew', 'stepDone'];
+  var steps = ['stepPin', 'stepChoose', 'stepNew', 'stepLeave', 'stepDone'];
 
   function showStep(name) {
     steps.forEach(function (s) { $(s).style.display = (s === name) ? 'block' : 'none'; });
@@ -186,6 +186,42 @@
       if (r) doCheckin(r);
     });
   });
+
+  // ===== 请假说明 =====
+  $('leaveBtn').addEventListener('click', function () { $('leaveResult').textContent = ''; showStep('stepLeave'); });
+  $('leaveBack').addEventListener('click', function () { showStep('stepPin'); });
+
+  async function onLeave() {
+    var pin = $('leavePin').value.trim();
+    var name = $('leaveName').value.trim();
+    var reason = $('leaveReason').value.trim();
+    if (!validPin(pin)) { toast('请输入手机号后四位', 'error'); $('leavePin').focus(); return; }
+    if (!name) { toast('请输入姓名', 'error'); $('leaveName').focus(); return; }
+    if (!reason) { toast('请说明无法出席的理由', 'error'); $('leaveReason').focus(); return; }
+    if (!currentActivity) { toast('暂未设置本场活动', 'error'); return; }
+
+    var list = await findResidentsByPin(pin);
+    if (list === null) { toast('网络异常，请重试', 'error'); return; }
+    var resident = (list || []).filter(function (r) { return r.name === name; })[0];
+    if (!resident) { $('leaveResult').textContent = '未找到您的报名记录，请确认后四位与姓名。'; return; }
+
+    // 是否报名本场活动
+    var { data: reg } = await sb.from('registrations').select('id').eq('activity_id', currentActivity.id).eq('resident_id', resident.id).maybeSingle();
+    if (!reg) { $('leaveResult').textContent = '您未报名本场活动，无需请假。'; return; }
+
+    // 是否已请假
+    var { data: lv } = await sb.from('leave_requests').select('id').eq('activity_id', currentActivity.id).eq('resident_id', resident.id).maybeSingle();
+    if (lv) { $('leaveResult').textContent = '您已请过假了，谢谢告知。'; return; }
+
+    var { error } = await sb.from('leave_requests').insert({ activity_id: currentActivity.id, resident_id: resident.id, reason: reason });
+    if (error) { console.error(error); toast('提交失败，请重试', 'error'); return; }
+
+    $('leaveResult').textContent = '已登记请假，谢谢告知。';
+    toast('请假成功');
+    $('leavePin').value = ''; $('leaveName').value = ''; $('leaveReason').value = '';
+  }
+
+  $('leaveSubmit').addEventListener('click', onLeave);
 
   // 初始化
   birthInit();

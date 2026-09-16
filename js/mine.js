@@ -121,6 +121,16 @@
 
     // 积分 = 签到次数
     renderPoints((chk && chk.length) || 0);
+
+    // 出勤情况：缺勤 / 报名暂停
+    var ab = await absenceStatus(me.id);
+    if (ab.banned_until && new Date(ab.banned_until).getTime() > Date.now()) {
+      $('myAttend').innerHTML = '⛔ 报名暂停至 <b>' + esc(fmtDateFull(ab.banned_until)) + '</b>，届时自动恢复。';
+    } else if (ab.absence_count > 0) {
+      $('myAttend').innerHTML = '⚠️ 累计缺勤 <b>' + ab.absence_count + '</b> 节（满 5 节将暂停报名一周）。';
+    } else {
+      $('myAttend').innerHTML = '✅ 出勤正常，未出现缺勤。';
+    }
   }
 
   $('identifyBtn').addEventListener('click', identify);

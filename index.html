@@ -564,6 +564,21 @@ body.has-nav{padding-bottom:66px}
     <div class="phint" id="pHint"></div>
   </section>
 
+  <!-- ============ 今日活动提醒 ============ -->
+  <section class="sec" id="todayRemind">
+    <div class="sec-hd"><span class="bar"></span><h2>今日活动提醒</h2></div>
+    <div class="card">
+      <p style="margin:0 0 12px;font-size:14.5px;color:var(--ink2);line-height:1.6">输入手机号<b>后四位</b>和<b>姓名</b>，看看您今天报了哪些活动，请准时出席。</p>
+      <input id="tPin" type="tel" inputmode="numeric" maxlength="4" placeholder="手机号后四位" autocomplete="off"
+        style="width:100%;box-sizing:border-box;font-size:17px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff;color:var(--ink)">
+      <input id="tName" type="text" maxlength="20" placeholder="姓名" autocomplete="off"
+        style="width:100%;box-sizing:border-box;font-size:17px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;margin-bottom:12px;background:#fff;color:var(--ink)">
+      <button id="tBtn" type="button"
+        style="width:100%;box-sizing:border-box;font-size:17px;font-weight:700;padding:13px;border:none;border-radius:12px;background:var(--teal);color:#fff;cursor:pointer">查看我的今日活动</button>
+      <div id="tResult" style="margin-top:12px;font-size:15px;line-height:1.65;color:var(--ink);min-height:1em"></div>
+    </div>
+  </section>
+
   <!-- ============ 最新通知 ============ -->
   <section class="sec" id="notices">
     <div class="sec-hd"><span class="bar"></span><h2>最新通知</h2></div>
@@ -1667,6 +1682,53 @@ function loadHomeContent(){
     }).join('');
   });
 }
+
+/* ================= 今日活动提醒 ================= */
+function todayStr(){
+  var d = new Date();
+  var p = function(n){ return n < 10 ? '0' + n : '' + n; };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+async function onTodayRemind(){
+  var pin = $('tPin').value.trim();
+  var name = $('tName').value.trim();
+  var res = $('tResult');
+  if (!validPin(pin)) { res.textContent = '请输入手机号后四位'; $('tPin').focus(); return; }
+  if (!name) { res.textContent = '请输入姓名'; $('tName').focus(); return; }
+
+  var sb = getSupabase();
+  if (!sb) { res.textContent = '未连接云端，请检查配置'; return; }
+  res.textContent = '正在查询…';
+
+  var list = await findResidentsByPin(pin);
+  if (list === null) { res.textContent = '网络异常，请重试'; return; }
+  var resident = (list || []).filter(function(r){ return r.name === name; })[0];
+  if (!resident) { res.textContent = '未找到您的记录，请确认后四位与姓名。'; return; }
+
+  var today = todayStr();
+  var { data, error } = await sb.from('registrations')
+    .select('id, activities(id,title,date,time,location)')
+    .eq('resident_id', resident.id)
+    .eq('activities.date', today);
+  if (error) { console.error(error); res.textContent = '查询失败，请重试'; return; }
+
+  var acts = (data || []).map(function(r){ return r.activities; }).filter(Boolean);
+  if (!acts.length) {
+    res.textContent = '您今天暂无报名的活动。';
+    speak('您今天没有报名的活动。');
+    return;
+  }
+  var html = acts.map(function(a){
+    return '『' + esc(a.title || '活动') + '』（' + (a.time ? esc(a.time) + ' · ' : '') + esc(a.location || '') + '）';
+  }).join('；');
+  res.innerHTML = '您今天报名了：' + html + '，请准时出席 ✨';
+  speak('您今天报名了 ' + acts.length + ' 场活动，请准时出席。');
+}
+
+$('tBtn').addEventListener('click', onTodayRemind);
+$('tPin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('tName').focus(); });
+$('tName').addEventListener('keydown', function(e){ if (e.key === 'Enter') onTodayRemind(); });
 
 /* ================= 启动 ================= */
 buildPortal();

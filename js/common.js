@@ -83,6 +83,16 @@ async function ensureResident(pin, name, birthDate) {
   return data;
 }
 
+// 缺勤/暂停状态：调用服务端重算函数，返回 { absence_count, banned_until }
+async function absenceStatus(residentId) {
+  const sb = getSupabase();
+  if (!sb) return { absence_count: 0, banned_until: null };
+  const { data, error } = await sb.rpc('recompute_resident_absence', { p_resident_id: residentId });
+  if (error) { console.error(error); return { absence_count: 0, banned_until: null }; }
+  if (Array.isArray(data) && data.length) return data[0];
+  return { absence_count: 0, banned_until: null };
+}
+
 // 获取当前登录工作人员（无则 null）
 async function currentStaff() {
   const sb = getSupabase();

@@ -148,6 +148,15 @@
     var resident = await ensureResident(pin, name, birth);
     if (!resident) { showErr('报名失败，请重试'); busy = false; submit.disabled = false; submit.textContent = '确认报名'; return; }
 
+    // 1.5) 缺勤暂停拦截
+    var ab = await absenceStatus(resident.id);
+    if (ab.banned_until && new Date(ab.banned_until).getTime() > Date.now()) {
+      var d = Math.ceil((new Date(ab.banned_until).getTime() - Date.now()) / 86400000);
+      showErr('您因累计缺勤已暂停报名，' + d + ' 天后恢复');
+      busy = false; submit.disabled = false; submit.textContent = '确认报名';
+      return;
+    }
+
     // 2) 是否已报名
     var { data: dup } = await sb.from('registrations').select('id').eq('activity_id', act.id).eq('resident_id', resident.id).maybeSingle();
     if (dup) { showErr('您已报名本场活动，无需重复报名'); busy = false; submit.disabled = false; submit.textContent = '确认报名'; return; }

@@ -167,21 +167,67 @@
     var aid = $('regActSel').value;
     if (!aid) { $('regAdminList').innerHTML = '<div class="empty">请先创建活动</div>'; return; }
     var { data, error } = await sb.from('registrations')
-      .select('id,registered_at,residents(name,pin)')
+      .select('id,registered_at,residents(id,name,pin,absence_count,banned_until)')
       .eq('activity_id', aid).order('registered_at', { ascending: true });
     if (error) { console.error(error); return; }
     data = data || [];
     if (!data.length) { $('regAdminList').innerHTML = '<div class="empty">暂无报名</div>'; return; }
-    var html = '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>报名时间</th></tr>';
-    data.forEach(function (r, i) {
+
+    // 逐人重算缺勤/暂停状态（服务端函数，保证最新）
+    var rows = await Promise.all(data.map(async function (r) {
       var p = r.residents || {};
-      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.registered_at)) + '</td></tr>';
+      var st = { absence_count: p.absence_count || 0, banned_until: p.banned_until || null };
+      if (p.id) {
+        var ab = await absenceStatus(p.id);
+        if (ab && typeof ab.absence_count === 'number') st = ab;
+      }
+      return { reg: r, p: p, st: st };
+    }));
+
+    var html = '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>报名时间</th><th>考勤</th><th>操作</th></tr>';
+    rows.forEach(function (o, i) {
+      var p = o.p, st = o.st, r = o.reg;
+      var banned = st.banned_until && new Date(st.banned_until).getTime() > Date.now();
+      var attn = banned
+        ? '<span style="color:#C0392B;font-weight:700">⛔ 暂停至 ' + esc(fmtDateFull(st.banned_until)) + '</span>'
+        : (st.absence_count > 0 ? '缺勤 ' + st.absence_count + ' 节' : '—');
+      var ops = '<button class="btn btn-sm btn-line" data-leave="' + p.id + '">请假</button>';
+      if (banned) ops += ' <button class="btn btn-sm btn-line" data-unban="' + p.id + '" style="color:#C0392B">解除暂停</button>';
+      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.registered_at)) + '</td><td>' + attn + '</td><td>' + ops + '</td></tr>';
     });
     html += '</table>';
     $('regAdminList').innerHTML = html;
   }
 
   $('regActSel').addEventListener('change', loadRegAdmin);
+
+  // 报名名单：请假登记 / 解除暂停
+  $('regAdminList').addEventListener('click', async function (e) {
+    var aid = $('regActSel').value;
+    var leaveId = e.target.getAttribute('data-leave');
+    if (leaveId) {
+      var reason = prompt('请填写该居民的请假理由：');
+      if (reason === null) return;
+      reason = reason.trim();
+      if (!reason) { toast('理由不能为空', 'error'); return; }
+      var { data: lv } = await sb.from('leave_requests').select('id').eq('activity_id', aid).eq('resident_id', leaveId).maybeSingle();
+      if (lv) { toast('该居民已登记请假', 'error'); return; }
+      var { error } = await sb.from('leave_requests').insert({ activity_id: aid, resident_id: leaveId, reason: reason });
+      if (error) { console.error(error); toast('登记失败，请重试', 'error'); return; }
+      toast('已登记请假', 'success');
+      loadRegAdmin();
+      return;
+    }
+    var unbanId = e.target.getAttribute('data-unban');
+    if (unbanId) {
+      if (!confirm('确定解除该居民的报名暂停？解除后可立即报名。')) return;
+      var { error } = await sb.from('residents').update({ banned_until: null }).eq('id', unbanId);
+      if (error) { console.error(error); toast('解除失败，请重试', 'error'); return; }
+      toast('已解除暂停', 'success');
+      loadRegAdmin();
+      return;
+    }
+  });
   $('regExport').addEventListener('click', async function () {
     var aid = $('regActSel').value;
     if (!aid) { toast('请先选择活动', 'error'); return; }

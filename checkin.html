@@ -48,6 +48,7 @@
     </div>
     <button id="pinNext" class="btn btn-primary btn-block btn-lg">确认签到</button>
     <button class="vbtn" id="vbtnPin" type="button"><span class="vico">🔊</span>听语音</button>
+    <button id="leaveBtn" class="btn btn-ghost btn-block mt8" type="button">📝 已报名但无法出席？请假说明</button>
     <p class="hint center mt8">本页只记录手机号后四位，不收集完整手机号码。</p>
   </section>
 
@@ -79,6 +80,27 @@
     <button id="newSubmit" class="btn btn-primary btn-block btn-lg">确认并签到</button>
     <button id="newBack" class="btn btn-line btn-block mt8">返回重输</button>
     <button class="vbtn" id="vbtnName" type="button"><span class="vico">🔊</span>听语音</button>
+  </section>
+
+  <!-- 请假说明 -->
+  <section class="card" id="stepLeave" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2>请假说明</h2></div>
+    <p class="hint">请填写手机号后四位和姓名，并说明无法出席的原因。</p>
+    <div class="field mt14">
+      <label for="leavePin">手机号后四位</label>
+      <input id="leavePin" class="input big" type="tel" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="leaveName">姓名</label>
+      <input id="leaveName" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="leaveReason">无法出席的理由</label>
+      <textarea id="leaveReason" class="input" rows="3" placeholder="例如：身体不适、家中有事……"></textarea>
+    </div>
+    <button id="leaveSubmit" class="btn btn-teal btn-block btn-lg">提交请假</button>
+    <button id="leaveBack" class="btn btn-line btn-block mt8">返回</button>
+    <div id="leaveResult" class="hint center mt8"></div>
   </section>
 
   <!-- 签到成功 -->

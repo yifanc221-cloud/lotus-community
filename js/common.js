@@ -62,16 +62,19 @@ async function findResidentsByPin(pin) {
 }
 
 // 确保居民存在：按 (pin,name) 精确查，无则建档；返回 resident 对象或 null
-async function ensureResident(pin, name) {
+// birthDate 为出生年月日 'YYYY-MM-DD'（首次建档时写入；已存在居民不会覆盖）
+async function ensureResident(pin, name, birthDate) {
   const sb = getSupabase();
   if (!sb) return null;
-  const { data: exist } = await sb.from('residents').select('id,pin,name').eq('pin', pin).eq('name', name).maybeSingle();
+  const { data: exist } = await sb.from('residents').select('id,pin,name,birth_date').eq('pin', pin).eq('name', name).maybeSingle();
   if (exist) return exist;
-  const { data, error } = await sb.from('residents').insert({ pin: pin, name: name }).select().single();
+  const row = { pin: pin, name: name };
+  if (birthDate) row.birth_date = birthDate;
+  const { data, error } = await sb.from('residents').insert(row).select().single();
   if (error) {
     // 并发建档撞唯一约束时，重查一次
     if (error.code === '23505') {
-      const { data: again } = await sb.from('residents').select('id,pin,name').eq('pin', pin).eq('name', name).maybeSingle();
+      const { data: again } = await sb.from('residents').select('id,pin,name,birth_date').eq('pin', pin).eq('name', name).maybeSingle();
       return again || null;
     }
     console.error(error);
@@ -96,6 +99,45 @@ function photoUrl(storagePath) {
 // 生成随机文件名（防枚举）
 function randomFileName(ext) {
   return (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2)) + (ext || '');
+}
+
+// ============================================================
+// 出生年月日：三个下拉（年/月/日），适老化、必填采集
+// ============================================================
+
+// 填充页面上所有「出生年月日」下拉的选项
+function birthInit() {
+  var y = new Date().getFullYear();
+  var years = '<option value="">年份</option>';
+  for (var i = y; i >= y - 110; i--) years += '<option value="' + i + '">' + i + '</option>';
+  var months = '<option value="">月</option>';
+  for (var m = 1; m <= 12; m++) months += '<option value="' + (m < 10 ? '0' + m : m) + '">' + m + '月</option>';
+  var days = '<option value="">日</option>';
+  for (var d = 1; d <= 31; d++) days += '<option value="' + (d < 10 ? '0' + d : d) + '">' + d + '日</option>';
+  document.querySelectorAll('select[data-birth=year]').forEach(function (el) { el.innerHTML = years; });
+  document.querySelectorAll('select[data-birth=month]').forEach(function (el) { el.innerHTML = months; });
+  document.querySelectorAll('select[data-birth=day]').forEach(function (el) { el.innerHTML = days; });
+}
+
+// 读取一组出生年月日（传入容器元素），返回 'YYYY-MM-DD' 或 null（未选全）
+function birthRead(scope) {
+  var y = scope.querySelector('select[data-birth=year]');
+  var m = scope.querySelector('select[data-birth=month]');
+  var d = scope.querySelector('select[data-birth=day]');
+  if (!y || !m || !d || !y.value || !m.value || !d.value) return null;
+  return y.value + '-' + m.value + '-' + d.value;
+}
+
+// 由出生日期算周岁年龄；空则返回 ''
+function ageFromBirth(b) {
+  if (!b) return '';
+  var bd = new Date(b);
+  if (isNaN(bd.getTime())) return '';
+  var now = new Date();
+  var age = now.getFullYear() - bd.getFullYear();
+  var m = now.getMonth() - bd.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
+  return age >= 0 ? age : '';
 }
 
 // ============================================================

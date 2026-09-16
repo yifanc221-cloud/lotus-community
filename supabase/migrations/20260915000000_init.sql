@@ -11,6 +11,7 @@ create table if not exists public.residents (
   id uuid primary key default gen_random_uuid(),
   pin text not null check (pin ~ '^[0-9]{4}$'),   -- 手机号后四位
   name text not null,
+  birth_date date,                -- 出生年月日（用于按年龄段分层服务）
   created_at timestamptz not null default now(),
   unique (pin, name)
 );

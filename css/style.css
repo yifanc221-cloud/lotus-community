@@ -82,6 +82,9 @@ img { display: block; max-width: 100%; }
 .login-inline { display: flex; gap: 10px; }
 .login-inline .login-pin { flex: 0 0 40%; text-align: center; letter-spacing: .18em; font-size: 20px; font-weight: 700; }
 .login-inline .login-name { flex: 1; }
+.birth-row { display: flex; gap: 10px; }
+.birth-row .select { flex: 1; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; }
+.birth-row .select[data-birth=year] { flex: 1.35; }
 textarea.input { min-height: 80px; resize: vertical; }
 .hint { font-size: 13px; color: var(--ink3); margin-top: 5px; }
 

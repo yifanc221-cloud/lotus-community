@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#D85A30">
 <title>莲花社区服务点 · 长者活动签到</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20260916">
 </head>
 <body class="has-nav">
 
@@ -63,10 +63,18 @@
   <!-- 首次建档 -->
   <section class="card" id="stepNew" style="display:none">
     <div class="card-hd"><span class="dot"></span><h2>第一次来，欢迎您</h2></div>
-    <p class="hint">请填写您的姓名，填一次就好，以后签到就不用再填了。</p>
+    <p class="hint">请填写您的姓名和出生年月日，填一次就好，以后签到就不用再填了。</p>
     <div class="field mt14">
       <label for="nameInput">您的姓名</label>
       <input id="nameInput" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>出生年月日</label>
+      <div class="birth-row">
+        <select class="select" data-birth="year" aria-label="出生年份"></select>
+        <select class="select" data-birth="month" aria-label="出生月份"></select>
+        <select class="select" data-birth="day" aria-label="出生日"></select>
+      </div>
     </div>
     <button id="newSubmit" class="btn btn-primary btn-block btn-lg">确认并签到</button>
     <button id="newBack" class="btn btn-line btn-block mt8">返回重输</button>
@@ -122,7 +130,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js"></script>
-<script src="js/checkin.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/checkin.js?v=20260916"></script>
 </body>
 </html>

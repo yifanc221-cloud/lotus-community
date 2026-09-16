@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#0F6E56">
 <title>莲花社区服务点 · 工作人员后台</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20260916">
 </head>
 <body>
 
@@ -98,6 +98,14 @@
           <label for="chkName">居民姓名（首次登记）</label>
           <input id="chkName" class="input" type="text" maxlength="20" placeholder="请输入姓名" autocomplete="off">
         </div>
+        <div class="field" id="chkBirthField" style="display:none">
+          <label>出生年月日</label>
+          <div class="birth-row">
+            <select class="select" data-birth="year" aria-label="出生年份"></select>
+            <select class="select" data-birth="month" aria-label="出生月份"></select>
+            <select class="select" data-birth="day" aria-label="出生日"></select>
+          </div>
+        </div>
         <button class="btn btn-teal btn-block btn-lg" id="chkDoBtn">帮这位居民签到</button>
       </div>
       <div class="card mt8">
@@ -156,9 +164,9 @@
     <section class="panel" id="pArchive">
       <div class="card">
         <div class="card-hd"><span class="dot"></span><h2>数据存档</h2></div>
-        <p class="hint">把后台记录导出成表格（CSV），可打印归档、上报或长期留存。</p>
+        <p class="hint">把后台记录导出成 Excel（.xlsx），可打印归档、上报或长期留存。</p>
         <div class="arch-item">
-          <div><b>居民档案总表</b><div class="muted">姓名、后四位、建档时间、累计签到·积分、累计报名</div></div>
+          <div><b>居民档案总表</b><div class="muted">姓名、后四位、出生年月日、年龄、建档时间、累计签到·积分、累计报名</div></div>
           <button class="btn btn-line" id="archResidents">导出</button>
         </div>
         <div class="arch-item">
@@ -174,7 +182,7 @@
           <button class="btn btn-line" id="archActs">导出</button>
         </div>
         <div class="arch-item">
-          <div><b>照片清单</b><div class="muted">已上传照片的档案（类型 / 关联居民 / 文件名）</div></div>
+          <div><b>照片清单</b><div class="muted">已上传照片的档案，Excel 中可直接看到照片缩略图</div></div>
           <button class="btn btn-line" id="archPhotos">导出</button>
         </div>
       </div>
@@ -202,9 +210,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/admin.js?v=20260916"></script>
 </body>
 </html>

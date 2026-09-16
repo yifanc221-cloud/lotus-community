@@ -184,11 +184,15 @@
   $('regActSel').addEventListener('change', loadRegAdmin);
   $('regExport').addEventListener('click', async function () {
     var aid = $('regActSel').value;
-    var { data } = await sb.from('registrations').select('registered_at,residents(name,pin)').eq('activity_id', aid).order('registered_at', { ascending: true });
+    if (!aid) { toast('请先选择活动', 'error'); return; }
+    var { data } = await sb.from('registrations').select('registered_at,residents(name,pin,birth_date)').eq('activity_id', aid).order('registered_at', { ascending: true });
     var { data: act } = await sb.from('activities').select('title').eq('id', aid).maybeSingle();
-    var rows = [['姓名', '手机号后四位', '报名时间']];
-    (data || []).forEach(function (r) { rows.push([(r.residents || {}).name, (r.residents || {}).pin, fmtTime(r.registered_at)]); });
-    exportCSV('报名名单_' + (act ? act.title : '') + '.csv', rows);
+    var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '报名时间']];
+    (data || []).forEach(function (r) {
+      var p = r.residents || {};
+      rows.push([p.name, p.pin, p.birth_date || '', ageFromBirth(p.birth_date), fmtTime(r.registered_at)]);
+    });
+    exportXLSX('报名名单_' + (act ? act.title : '') + '.xlsx', rows, [12, 12, 14, 8, 20]);
   });
 
   // ================= 签到管理 =================
@@ -213,11 +217,15 @@
   $('chkActSel').addEventListener('change', loadChkAdmin);
   $('chkExport').addEventListener('click', async function () {
     var aid = $('chkActSel').value;
-    var { data } = await sb.from('checkins').select('checked_in_at,checked_in_by,residents(name,pin)').eq('activity_id', aid).order('checked_in_at', { ascending: true });
+    if (!aid) { toast('请先选择活动', 'error'); return; }
+    var { data } = await sb.from('checkins').select('checked_in_at,checked_in_by,residents(name,pin,birth_date)').eq('activity_id', aid).order('checked_in_at', { ascending: true });
     var { data: act } = await sb.from('activities').select('title').eq('id', aid).maybeSingle();
-    var rows = [['姓名', '手机号后四位', '签到时间', '方式']];
-    (data || []).forEach(function (r) { rows.push([(r.residents || {}).name, (r.residents || {}).pin, fmtTime(r.checked_in_at), r.checked_in_by === 'self' ? '本人' : '代签']); });
-    exportCSV('签到名单_' + (act ? act.title : '') + '.csv', rows);
+    var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '签到时间', '方式']];
+    (data || []).forEach(function (r) {
+      var p = r.residents || {};
+      rows.push([p.name, p.pin, p.birth_date || '', ageFromBirth(p.birth_date), fmtTime(r.checked_in_at), r.checked_in_by === 'self' ? '本人' : '代签']);
+    });
+    exportXLSX('签到名单_' + (act ? act.title : '') + '.xlsx', rows, [12, 12, 14, 8, 20, 8]);
   });
 
   // 帮签：输入后四位查人
@@ -225,12 +233,14 @@
     var pin = this.value.trim();
     chkSelected = null;
     $('chkNameField').style.display = 'none';
+    $('chkBirthField').style.display = 'none';
     if (!validPin(pin)) { $('chkPeople').innerHTML = ''; return; }
     var list = await findResidentsByPin(pin);
     if (list === null) return;
     if (list.length === 0) {
-      $('chkPeople').innerHTML = '<p class="hint">未找到记录，首次登记请填写姓名。</p>';
+      $('chkPeople').innerHTML = '<p class="hint">未找到记录，首次登记请填写姓名和出生年月日。</p>';
       $('chkNameField').style.display = 'block';
+      $('chkBirthField').style.display = 'block';
     } else if (list.length === 1) {
       chkSelected = list[0];
       $('chkPeople').innerHTML = '<p class="hint" style="color:var(--teal)">将为 <b>' + esc(list[0].name) + '</b> 签到</p>';
@@ -257,7 +267,9 @@
     if (!resident) {
       var name = $('chkName').value.trim();
       if (!name) { toast('请输入居民姓名', 'error'); return; }
-      resident = await ensureResident(pin, name);
+      var birth = birthRead($('chkBirthField'));
+      if (!birth) { toast('请选择出生年月日', 'error'); return; }
+      resident = await ensureResident(pin, name, birth);
       if (!resident) { toast('建档失败', 'error'); return; }
     }
 
@@ -274,7 +286,7 @@
     var { error } = await sb.from('checkins').insert({ activity_id: aid, resident_id: resident.id, checked_in_by: staff.id });
     if (error) { toast('签到失败', 'error'); return; }
     toast('已为 ' + resident.name + ' 签到', 'success');
-    $('chkPin').value = ''; $('chkName').value = ''; $('chkPeople').innerHTML = ''; chkSelected = null; $('chkNameField').style.display = 'none';
+    $('chkPin').value = ''; $('chkName').value = ''; $('chkPeople').innerHTML = ''; chkSelected = null; $('chkNameField').style.display = 'none'; $('chkBirthField').style.display = 'none';
     loadChkAdmin();
   });
 
@@ -405,42 +417,42 @@
   }
 
   async function archResidents() {
-    var { data } = await sb.from('residents').select('id,pin,name,created_at').order('created_at', { ascending: true });
+    var { data } = await sb.from('residents').select('id,pin,name,birth_date,created_at').order('created_at', { ascending: true });
     var { data: chk } = await sb.from('checkins').select('resident_id');
     var { data: reg } = await sb.from('registrations').select('resident_id');
     var chkCount = {}, regCount = {};
     (chk || []).forEach(function (c) { chkCount[c.resident_id] = (chkCount[c.resident_id] || 0) + 1; });
     (reg || []).forEach(function (r) { regCount[r.resident_id] = (regCount[r.resident_id] || 0) + 1; });
-    var rows = [['姓名', '手机号后四位', '建档时间', '累计签到·积分', '累计报名次数']];
+    var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '建档时间', '累计签到·积分', '累计报名次数']];
     (data || []).forEach(function (r) {
       var n = chkCount[r.id] || 0;
-      rows.push([r.name, r.pin, fmtTime(r.created_at), n, regCount[r.id] || 0]);
+      rows.push([r.name, r.pin, r.birth_date || '', ageFromBirth(r.birth_date), fmtTime(r.created_at), n, regCount[r.id] || 0]);
     });
-    exportCSV('居民档案总表_' + todayStr() + '.csv', rows);
+    exportXLSX('居民档案总表_' + todayStr() + '.xlsx', rows, [12, 12, 14, 8, 20, 14, 14]);
   }
 
   async function archCheckins() {
     var { data } = await sb.from('checkins')
-      .select('checked_in_at,checked_in_by,residents(name,pin),activities(title,date)')
+      .select('checked_in_at,checked_in_by,residents(name,pin,birth_date),activities(title,date)')
       .order('checked_in_at', { ascending: true });
-    var rows = [['活动', '活动日期', '姓名', '后四位', '签到时间', '方式']];
+    var rows = [['活动', '活动日期', '姓名', '后四位', '出生年月日', '年龄', '签到时间', '方式']];
     (data || []).forEach(function (c) {
       var r = c.residents || {}, a = c.activities || {};
-      rows.push([a.title || '', a.date || '', r.name || '', r.pin || '', fmtTime(c.checked_in_at), c.checked_in_by === 'self' ? '本人' : '代签']);
+      rows.push([a.title || '', a.date || '', r.name || '', r.pin || '', r.birth_date || '', ageFromBirth(r.birth_date), fmtTime(c.checked_in_at), c.checked_in_by === 'self' ? '本人' : '代签']);
     });
-    exportCSV('签到记录总表_' + todayStr() + '.csv', rows);
+    exportXLSX('签到记录总表_' + todayStr() + '.xlsx', rows, [22, 14, 12, 10, 14, 8, 20, 8]);
   }
 
   async function archRegs() {
     var { data } = await sb.from('registrations')
-      .select('registered_at,residents(name,pin),activities(title,date)')
+      .select('registered_at,residents(name,pin,birth_date),activities(title,date)')
       .order('registered_at', { ascending: true });
-    var rows = [['活动', '活动日期', '姓名', '后四位', '报名时间']];
+    var rows = [['活动', '活动日期', '姓名', '后四位', '出生年月日', '年龄', '报名时间']];
     (data || []).forEach(function (r) {
       var rs = r.residents || {}, a = r.activities || {};
-      rows.push([a.title || '', a.date || '', rs.name || '', rs.pin || '', fmtTime(r.registered_at)]);
+      rows.push([a.title || '', a.date || '', rs.name || '', rs.pin || '', rs.birth_date || '', ageFromBirth(rs.birth_date), fmtTime(r.registered_at)]);
     });
-    exportCSV('报名记录总表_' + todayStr() + '.csv', rows);
+    exportXLSX('报名记录总表_' + todayStr() + '.xlsx', rows, [22, 14, 12, 10, 14, 8, 20]);
   }
 
   async function archActs() {
@@ -456,20 +468,60 @@
     (data || []).forEach(function (a) {
       rows.push([a.title, a.date || '', a.time || '', a.location || '', a.is_current ? '本场' : '', regCount[a.id] || 0, chkCount[a.id] || 0]);
     });
-    exportCSV('活动汇总表_' + todayStr() + '.csv', rows);
+    exportXLSX('活动汇总表_' + todayStr() + '.xlsx', rows, [24, 14, 16, 22, 10, 10, 10]);
   }
 
   async function archPhotos() {
     var { data } = await sb.from('photos')
-      .select('type,storage_path,created_at,residents(name,pin),activities(title)')
-      .order('created_at', { ascending: false });
-    var rows = [['活动', '类型', '关联居民', '后四位', '文件名', '上传时间']];
-    (data || []).forEach(function (p) {
+      .select('type,storage_path,created_at,residents(name,pin,birth_date),activities(title)')
+      .order('created_at', { ascending: true });
+    data = data || [];
+    if (!window.ExcelJS) { toast('Excel 组件未加载，请刷新后重试', 'error'); return; }
+
+    toast('正在生成照片 Excel，请稍候…');
+    var wb = new ExcelJS.Workbook();
+    var ws = wb.addWorksheet('照片清单');
+
+    // 表头
+    var header = ['照片', '活动', '类型', '关联居民', '后四位', '出生年月日', '上传时间'];
+    var hr = ws.addRow(header);
+    hr.font = { bold: true };
+    hr.height = 24;
+    hr.eachCell(function (c) {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0EDE5' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+
+    // 列宽（第 1 列放图片，留足宽度）
+    [18, 24, 10, 12, 10, 14, 20].forEach(function (w, idx) { ws.getColumn(idx + 1).width = w; });
+
+    // 逐行写入 + 嵌入缩略图
+    for (var i = 0; i < data.length; i++) {
+      var p = data[i];
       var r = p.residents || {}, a = p.activities || {};
       var isPersonal = p.type === 'personal';
-      rows.push([a.title || '', isPersonal ? '个人照' : '大合照', isPersonal ? (r.name || '') : '—', isPersonal ? (r.pin || '') : '—', p.storage_path, fmtTime(p.created_at)]);
-    });
-    exportCSV('照片清单_' + todayStr() + '.csv', rows);
+      var row = ws.addRow(['', a.title || '', isPersonal ? '个人照' : '大合照',
+        isPersonal ? (r.name || '') : '—', isPersonal ? (r.pin || '') : '—',
+        r.birth_date || '', fmtTime(p.created_at)]);
+      row.height = 80;
+      row.alignment = { vertical: 'middle' };
+
+      var img = await fetchImageB64(photoUrl(p.storage_path), p.storage_path);
+      if (img) {
+        var imageId = wb.addImage({ base64: img.base64, extension: img.extension });
+        // ExcelJS 锚点坐标为 0 起：表头占第 1 行(row 0)，数据第 i 条在 row i+1
+        ws.addImage(imageId, {
+          tl: { col: 0.1, row: i + 1.1 },
+          ext: { width: 96, height: 72 }
+        });
+      } else {
+        row.getCell(1).value = '（图片加载失败）';
+      }
+    }
+
+    var buf = await wb.xlsx.writeBuffer();
+    downloadBlob(buf, '照片清单_' + todayStr() + '.xlsx');
+    toast('照片 Excel 已导出', 'success');
   }
 
   $('archResidents').addEventListener('click', archResidents);
@@ -479,20 +531,65 @@
   $('archPhotos').addEventListener('click', archPhotos);
 
   // ================= 工具 =================
-  function exportCSV(filename, rows) {
-    var csv = '﻿' + rows.map(function (r) { return r.map(function (c) { return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  function downloadBlob(buf, filename) {
+    var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  // 通用：二维数组 → xlsx 下载（表头自动加粗 + 底纹，可选列宽）
+  async function exportXLSX(filename, rows, colWidths) {
+    var wb = new ExcelJS.Workbook();
+    var ws = wb.addWorksheet('数据');
+    ws.addRows(rows);
+    var hr = ws.getRow(1);
+    hr.font = { bold: true };
+    hr.eachCell(function (c) {
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0EDE5' } };
+      c.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+    if (colWidths && colWidths.length) {
+      ws.columns.forEach(function (col, i) { if (colWidths[i]) col.width = colWidths[i]; });
+    }
+    var buf = await wb.xlsx.writeBuffer();
+    downloadBlob(buf, filename);
+  }
+
+  // 图片公开 URL → { base64, extension }（用于嵌入 Excel）
+  async function fetchImageB64(url, storagePath) {
+    try {
+      var resp = await fetch(url);
+      if (!resp.ok) return null;
+      var blob = await resp.blob();
+      var buf = await blob.arrayBuffer();
+      var bytes = new Uint8Array(buf);
+      var binary = '';
+      var chunk = 0x8000;
+      for (var i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      var ext = 'jpeg';
+      var m = (storagePath || '').match(/\.([a-zA-Z0-9]+)$/);
+      if (m) {
+        var e = m[1].toLowerCase();
+        ext = (e === 'jpg') ? 'jpeg' : e;
+        if (['jpeg', 'png', 'gif', 'bmp'].indexOf(ext) < 0) ext = 'jpeg';
+      }
+      return { base64: btoa(binary), extension: ext };
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
   }
 
   function refreshAll() {
     loadActAdmin(); refreshSelects(); loadStat();
   }
 
+  birthInit();
   initAuth();
 })();

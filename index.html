@@ -117,6 +117,9 @@ body{
 .reg-box .rin{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff;outline:none;margin-bottom:12px}
 .reg-box .rin.big{font-size:26px;text-align:center;letter-spacing:.35em;font-weight:700}
 .reg-box .rin:focus{border-color:var(--coral-l);box-shadow:0 0 0 3px var(--coral-x)}
+.reg-birth{display:flex;gap:8px;margin-bottom:12px}
+.reg-birth select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:12px 8px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
+.reg-birth select:focus{border-color:var(--coral-l);box-shadow:0 0 0 3px var(--coral-x)}
 .reg-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--teal) 0%,#0B5B47 100%);border-bottom:4px solid #084A39;color:#fff;font-size:19px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
 .reg-btn:active{transform:translateY(2px)}
 .reg-err{display:none;font-size:13.5px;color:#C0392B;margin-top:10px;text-align:center}
@@ -439,7 +442,7 @@ body.has-nav{padding-bottom:66px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js"></script>
+<script src="js/common.js?v=20260916"></script>
 </head>
 <body class="has-nav">
 
@@ -572,6 +575,11 @@ body.has-nav{padding-bottom:66px}
     <button class="vbtn" id="regVoice" type="button"><span class="vico">🔊</span>听语音</button>
     <input class="rin big" id="regPin" type="tel" inputmode="numeric" maxlength="4" placeholder="手机号后四位" autocomplete="off">
     <input class="rin" id="regName" type="text" placeholder="姓名" autocomplete="off">
+    <div class="reg-birth" id="regBirth">
+      <select data-birth="year" aria-label="出生年份"></select>
+      <select data-birth="month" aria-label="出生月份"></select>
+      <select data-birth="day" aria-label="出生日"></select>
+    </div>
     <button class="reg-btn" id="regSubmit" type="button">确认报名</button>
     <div class="reg-err" id="regErr"></div>
   </div>
@@ -1512,7 +1520,7 @@ window.addEventListener('pageshow', function(e){ if (e.persisted) buildPortal();
 window.addEventListener('focus', buildPortal);
 </script>
 
-<script src="js/register.js?v=20260915"></script>
+<script src="js/register.js?v=20260916"></script>
 
 <nav class="bottom-nav">
   <a href="index.html" class="on"><span class="ico">🏠</span>首页</a>

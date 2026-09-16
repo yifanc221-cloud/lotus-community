@@ -449,6 +449,20 @@ details.howto .warn{
 .qnav-btn.q2{background:linear-gradient(160deg,#F3FCF8,#FFFDF9);border-color:#BFE4D6;color:#0A5A45}
 .qnav-btn.q3{background:linear-gradient(160deg,#FFFBF0,#FFFDF9);border-color:#F7DFAE;color:#6B4409}
 
+/* ===== 安心生活入口 ===== */
+.anxin-entry{
+  display:flex;align-items:center;gap:14px;margin-top:14px;padding:16px 18px;
+  background:linear-gradient(160deg,#FFF4EC,#FFFDF9 55%,#F1FAF5);
+  border:2px solid #F3C6B2;border-radius:20px;text-decoration:none;
+  box-shadow:0 3px 14px rgba(216,90,48,.10);color:var(--ink);
+}
+.anxin-entry:active{transform:translateY(1px)}
+.anxin-entry .anxin-ico{font-size:34px;line-height:1;flex:0 0 40px;text-align:center}
+.anxin-entry .anxin-bd{min-width:0;flex:1}
+.anxin-entry .anxin-t{display:block;font-size:21px;font-weight:800;color:var(--ink)}
+.anxin-entry .anxin-d{display:block;font-size:14.5px;color:var(--ink2);margin-top:3px}
+.anxin-entry .anxin-ar{font-size:26px;color:var(--coral);font-weight:800;flex:0 0 auto}
+
 /* ===== 最新通知 ===== */
 .notice-item{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;background:var(--paper);border:2px solid var(--line);border-radius:14px;margin-bottom:9px}
 .notice-item:last-child{margin-bottom:0}
@@ -536,6 +550,16 @@ body.has-nav{padding-bottom:66px}
     <a class="qnav-btn q2" href="#services"><span class="qi">🧩</span><span class="qt">服务项目</span></a>
     <a class="qnav-btn q3" href="#contact"><span class="qi">📞</span><span class="qt">联系我们</span></a>
   </nav>
+
+  <!-- ============ 安心生活入口 ============ -->
+  <a class="anxin-entry" href="safe-life.html" aria-label="进入安心生活专区">
+    <span class="anxin-ico">🛡️</span>
+    <span class="anxin-bd">
+      <span class="anxin-t">安心生活</span>
+      <span class="anxin-d">防诈骗提醒｜脑力训练｜健康运动</span>
+    </span>
+    <span class="anxin-ar">›</span>
+  </a>
 
   <!-- ============ 本场活动门户：从这里进入签到页 ============ -->
   <section class="portal" id="portal" aria-labelledby="pTitle">

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<title>莲花社区服务点 · 防诈骗</title>
+<link rel="stylesheet" href="css/style.css?v=20260917">
+<link rel="stylesheet" href="css/safe-life.css?v=20260917">
+</head>
+<body class="sl-body">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>安心生活 · 防诈骗</b><span><a href="safe-life.html">← 安心生活</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+
+  <!-- 四入口 -->
+  <nav class="af-menu" aria-label="防诈骗板块">
+    <a class="af-entry" href="#secReminder"><span class="ic">📢</span><span class="bd"><span class="t">今日诈骗提醒</span><span class="d">每天一句，记住就不上当</span></span><span class="ar">›</span></a>
+    <a class="af-entry" href="#secCases"><span class="ic">📚</span><span class="bd"><span class="t">常见诈骗案例</span><span class="d">看清骗子怎么说、怎么防</span></span><span class="ar">›</span></a>
+    <a class="af-entry" href="#secQuiz"><span class="ic">✏️</span><span class="bd"><span class="t">防诈骗小测试</span><span class="d">做几道题，考考自己</span></span><span class="ar">›</span></a>
+    <a class="af-entry" href="#secHelp"><span class="ic">🆘</span><span class="bd"><span class="t">遇到可疑情况怎么办</span><span class="d">这里可以求助</span></span><span class="ar">›</span></a>
+  </nav>
+
+  <!-- 今日提醒 -->
+  <section class="card" id="secReminder">
+    <div class="card-hd"><span class="dot"></span><h2>今日诈骗提醒</h2></div>
+    <div class="af-reminder">
+      <div class="lead">记住三句话，守护养老钱</div>
+      <ul class="core">
+        <li>不转账：陌生人让您转钱、汇钱，先停下。</li>
+        <li>不给码：短信验证码、银行卡密码，谁也不给。</li>
+        <li>不共享屏幕：让您开「屏幕共享」的都是骗子。</li>
+        <li>拿不准就问：联系子女、工作人员，或打 96110。</li>
+      </ul>
+    </div>
+    <button class="vbtn" id="afVoice" type="button"><span class="vico">🔊</span>播放语音</button>
+  </section>
+
+  <!-- 常见案例 -->
+  <section class="card" id="secCases">
+    <div class="card-hd"><span class="dot"></span><h2>常见诈骗案例</h2></div>
+    <p class="hint">点开每个案例，看骗子<b>怎么说</b>、<b>哪里可疑</b>、<b>怎么处理</b>。</p>
+    <div id="caseList"></div>
+  </section>
+
+  <!-- 小测试 -->
+  <section class="card" id="secQuiz">
+    <div class="card-hd"><span class="dot"></span><h2>防诈骗小测试</h2></div>
+    <div id="quizBox">
+      <p class="hint">一次做一道题，选完马上告诉您对不对。做做题，印象更深。</p>
+      <button id="quizStart" class="btn btn-teal btn-block btn-lg mt14">开始答题</button>
+    </div>
+  </section>
+
+  <!-- 求助 -->
+  <section class="card" id="secHelp">
+    <div class="card-hd"><span class="dot"></span><h2>遇到可疑情况怎么办</h2></div>
+    <p class="hint">拿不准是不是骗局？点下面的按钮，工作人员会尽快帮您。</p>
+    <button class="help-btn h1" id="helpFamily"><span class="ic">👨‍👩‍👧</span>联系家属</button>
+    <button class="help-btn h2" id="helpStaff"><span class="ic">🧑‍💼</span>联系工作人员</button>
+    <a class="help-btn h3" href="tel:96110" id="helpPolice" style="text-decoration:none"><span class="ic">📞</span>拨打 96110 或 110</a>
+    <div id="helpMsg" class="hint center mt8"></div>
+  </section>
+
+  <p class="bt-foot">本专区仅提供日常防骗提醒，不承诺「保证不上当」，也不替代警方判断。遇紧急情况请直接拨打 110。</p>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/safe-life.js?v=20260917"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var me = slRequire();
+  if (!me) return;
+
+  // ============ 今日提醒语音 ============
+  var reminderText = '不转账：陌生人让您转钱、汇钱，先停下。不给码：短信验证码、银行卡密码，谁也不给。不共享屏幕：让您开屏幕共享的都是骗子。拿不准就问：联系子女、工作人员，或打九六一一零。';
+  slRecordRead('reminder');
+  $('afVoice').addEventListener('click', function () {
+    speak(reminderText);
+    slRecordRead('reminder');
+  });
+
+  // ============ 常见案例 ============
+  var CASES = [
+    { ic: '👨‍👩‍👧', t: '冒充子女或亲友', say: '“爸妈，我出事了，急需用钱，快转到这个账号，先别告诉别人。”', sus: '声音着急、不让挂电话、不让核实、催着马上转账、指定陌生账号。', act: '先挂断，用平时熟悉的号码回拨子女核实；联系其他家人确认；绝不向陌生账号转账。' },
+    { ic: '👮', t: '冒充公安、检察院', say: '“您涉嫌洗钱，要配合调查，把钱转到‘安全账户’，否则就逮捕您。”', sus: '真警察不会电话办案、不会让您转账、不会用“安全账户”，常出示假证件博取信任。', act: '公检法不会电话要钱，立即挂断；拨打 110 或 96110 核实；不透露卡号、密码、验证码。' },
+    { ic: '📦', t: '快递退款（冒充客服）', say: '“您的快递丢了，我们双倍退款，请扫码或点链接，输入银行卡和验证码。”', sus: '主动联系还“双倍赔偿”、让您扫码或点不明链接、索要验证码和银行卡信息。', act: '退款走官方渠道，不要私下扫码或点链接；先挂断，联系正规平台客服核实；验证码绝不给。' },
+    { ic: '💊', t: '保健品推销', say: '“祖传秘方、包治百病，买三送一，今天不买明天涨价，还能返现。”', sus: '夸大疗效、包治百病、限时优惠制造紧张、送小礼品拉近关系、冒充专家名医。', act: '买药认准正规药店和医生；不听“包治百病”；大额购买先和家人商量。' },
+    { ic: '📈', t: '网络投资理财', say: '“稳赚不赔、高回报，跟着老师操作，先小额试试，赚了再加大投入。”', sus: '承诺高收益零风险、先让您小赚一笔、诱导下载陌生APP、让您不断加大投入。', act: '高收益必高风险，“稳赚不赔”都是骗局；不下载陌生APP；投资前先咨询子女或正规机构。' },
+    { ic: '🏠', t: '养老服务骗局', say: '“交定金、会员费，入住高档养老院，床位紧张，先交钱才能留名额。”', sus: '打着“养老”“惠民”旗号、催交高额费用、口头承诺豪华服务、找不到正规资质。', act: '入住养老机构要核实资质、签订正规合同；不向个人账户转大额资金；先咨询社区或民政部门。' }
+  ];
+
+  $('caseList').innerHTML = CASES.map(function (c) {
+    return '<div class="af-case">' +
+      '<div class="hd" role="button" tabindex="0"><span class="ic">' + c.ic + '</span><span class="t">' + esc(c.t) + '</span><span class="ar">›</span></div>' +
+      '<div class="bd">' +
+        '<span class="lab">骗子通常怎么说</span><p>' + esc(c.say) + '</p>' +
+        '<span class="lab warn">哪些地方可疑</span><p>' + esc(c.sus) + '</p>' +
+        '<span class="lab do">应该怎么处理</span><p>' + esc(c.act) + '</p>' +
+      '</div></div>';
+  }).join('');
+
+  $('caseList').addEventListener('click', function (e) {
+    var hd = e.target.closest('.hd');
+    if (!hd) return;
+    var c = hd.parentElement;
+    c.classList.toggle('open');
+    slRecordRead('cases');
+  });
+
+  // ============ 小测试 ============
+  var QUIZ = [
+    { q: '接到电话说「您的孩子出事了，急需转账」，应该怎么办？', opts: ['马上转账救急', '先挂断，用熟悉的号码回拨核实', '按对方说的做', '把验证码告诉他'], a: 1, why: '骗子常冒充亲友出事骗钱，先核实再决定。' },
+    { q: '陌生人让您把银行卡验证码发给他，正确做法是？', opts: ['发给他', '验证码谁也不能给', '告诉他卡号就行', '帮他转账'], a: 1, why: '验证码就是钱袋子的钥匙，谁也不能给。' },
+    { q: '「公检法」来电说您涉嫌犯罪，要转「安全账户」，该？', opts: ['立即转账', '挂断并拨打 110 核实', '按对方指引操作', '说出银行卡密码'], a: 1, why: '公检法不会电话办案、更不会让您转账。' },
+    { q: '收到「快递丢了，双倍退款」的链接，该？', opts: ['点开链接填信息', '私下扫码退款', '不点链接，联系正规客服核实', '把验证码告诉对方'], a: 2, why: '退款走官方渠道，陌生链接别乱点。' },
+    { q: '网上有人说「稳赚不赔、高回报」，该？', opts: ['先投一点试试', '赶紧加大投入', '相信「老师」跟着买', '不信，高收益必高风险'], a: 3, why: '天上不会掉馅饼，「稳赚不赔」都是骗局。' },
+    { q: '有人说「包治百病」的保健品，该？', opts: ['立刻购买', '认准正规药店和医生，不听夸大宣传', '买三送一很划算，多买', '借钱也要买'], a: 1, why: '买药认准正规渠道，别信夸大宣传。' },
+    { q: '陌生电话让您「共享屏幕」帮他操作，该？', opts: ['按他说的共享', '打开共享帮他', '拒绝，绝不给陌生人共享屏幕', '先试一下'], a: 2, why: '共享屏幕会把您的卡号和密码都露给对方。' },
+    { q: '遇到拿不准是不是骗局的情况，最好？', opts: ['自己先转账试试', '问子女、联系工作人员，或打 96110', '谁也不说', '听对方的'], a: 1, why: '拿不准就求助，别一个人做决定。' }
+  ];
+
+  var qi = 0, score = 0, answered = false;
+
+  function renderQuiz() {
+    var q = QUIZ[qi];
+    var keys = ['A', 'B', 'C', 'D'];
+    var html = '<div class="bt-progress"><span>第 ' + (qi + 1) + ' / ' + QUIZ.length + ' 题</span><span class="track"><span class="fill" style="width:' + Math.round((qi) / QUIZ.length * 100) + '%"></span></span></div>';
+    html += '<div class="quiz-q">' + esc(q.q) + '</div>';
+    html += q.opts.map(function (o, i) {
+      return '<button class="quiz-opt" data-i="' + i + '"><span class="k">' + keys[i] + '</span><span>' + esc(o) + '</span></button>';
+    }).join('');
+    html += '<div id="quizFb"></div>';
+    $('quizBox').innerHTML = html;
+    answered = false;
+    $('quizBox').querySelectorAll('.quiz-opt').forEach(function (b) {
+      b.addEventListener('click', function () { answer(parseInt(b.getAttribute('data-i'), 10)); });
+    });
+  }
+
+  function answer(i) {
+    if (answered) return;
+    answered = true;
+    var q = QUIZ[qi];
+    var opts = $('quizBox').querySelectorAll('.quiz-opt');
+    opts.forEach(function (b, k) {
+      b.disabled = true;
+      if (k === q.a) b.classList.add('correct');
+      if (k === i && i !== q.a) b.classList.add('wrong');
+    });
+    var ok = (i === q.a);
+    if (ok) score++;
+    var fb = '<div class="quiz-fb ' + (ok ? 'ok' : 'no') + '">' +
+      (ok ? '✅ <b>答对了！</b>' : '❌ <b>再想想，正确答案是 ' + ['A', 'B', 'C', 'D'][q.a] + '。</b>') +
+      '<div style="margin-top:6px">' + esc(q.why) + '</div></div>';
+    var last = (qi === QUIZ.length - 1);
+    fb += '<button class="btn ' + (ok ? 'btn-teal' : 'btn-primary') + ' btn-block btn-lg mt14" id="quizNext">' + (last ? '看结果' : '下一题') + '</button>';
+    $('quizFb').innerHTML = fb;
+    $('quizNext').addEventListener('click', function () {
+      if (last) finishQuiz(); else { qi++; renderQuiz(); }
+    });
+  }
+
+  function finishQuiz() {
+    slRecordRead('quiz');
+    var msg = score === QUIZ.length ? '太棒了，全都答对！'
+      : (score >= 6 ? '很好，继续保持警惕！' : '再复习一下案例，会更安心。');
+    var html = '<div class="bt-result"><div class="big">' + score + '<small> / ' + QUIZ.length + ' 题</small></div>' +
+      '<div class="sub">答对 ' + score + ' 题</div>' +
+      '<div class="encourage">' + msg + '</div></div>';
+    html += '<button class="btn btn-teal btn-block btn-lg mt14" id="quizAgain">再测一次</button>';
+    $('quizBox').innerHTML = html;
+    $('quizAgain').addEventListener('click', function () { qi = 0; score = 0; renderQuiz(); });
+  }
+
+  $('quizStart').addEventListener('click', function () { qi = 0; score = 0; renderQuiz(); });
+
+  // ============ 求助 ============
+  async function askHelp(type, text) {
+    var sb = getSupabase();
+    if (!sb) { toast('未连接云端', 'error'); return; }
+    var { error } = await sb.from('sl_help_requests').insert({ resident_id: me.id, help_type: type, note: text });
+    if (error) { console.error(error); toast('提交失败，请重试', 'error'); return; }
+    $('helpMsg').textContent = text;
+    toast('已记录，工作人员会尽快跟进');
+  }
+  $('helpFamily').addEventListener('click', function () { askHelp('family', '已记录：希望联系家属，请工作人员协助。'); });
+  $('helpStaff').addEventListener('click', function () { askHelp('staff', '已记录：希望工作人员联系本人。'); });
+  $('helpPolice').addEventListener('click', function () { askHelp('police', '已记录：本人拨打了反诈专线。'); });
+})();
+</script>
+</body>
+</html>

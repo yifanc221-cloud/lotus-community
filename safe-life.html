@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<title>莲花社区服务点 · 安心生活</title>
+<link rel="stylesheet" href="css/style.css?v=20260917">
+<link rel="stylesheet" href="css/safe-life.css?v=20260917">
+</head>
+<body class="sl-body">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>安心生活</b><span><a href="index.html">← 返回首页</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+
+  <!-- 身份识别 -->
+  <section class="card" id="identifyCard">
+    <div class="card-hd"><span class="dot"></span><h2>欢迎来到安心生活</h2></div>
+    <p class="hint">输入手机号<b>后四位</b>和<b>姓名</b>，即可进入。填一次就好，翻页不用重填。</p>
+    <div class="field mt14">
+      <label for="slPin">手机号后四位 + 姓名</label>
+      <div class="login-inline">
+        <input id="slPin" class="input login-pin" type="tel" inputmode="numeric" maxlength="4" placeholder="后四位" autocomplete="off">
+        <input id="slName" class="input login-name" type="text" maxlength="20" placeholder="姓名" autocomplete="off">
+      </div>
+    </div>
+    <button id="slGo" class="btn btn-primary btn-block btn-lg">进入安心生活</button>
+    <p class="hint center mt8">如提示「未找到档案」，请先到活动报名或签到登记，或联系工作人员。</p>
+  </section>
+
+  <!-- 三大功能入口 -->
+  <section id="slHome" style="display:none">
+    <div class="sl-hero">
+      <div class="t1">安心生活</div>
+      <div class="t2">防诈骗提醒｜脑力训练｜健康运动</div>
+      <div class="who" id="slWho"></div>
+    </div>
+
+    <a class="sl-card c1" href="antifraud.html">
+      <div class="ic">🛡️</div>
+      <div class="t">防诈骗</div>
+      <div class="d">学习常见骗局，保护养老钱和银行卡，遇事有处问。</div>
+      <div class="go">查看今日提醒<span class="ar">›</span></div>
+    </a>
+
+    <a class="sl-card c2" href="braintrain.html">
+      <div class="ic">🧠</div>
+      <div class="t">脑力训练</div>
+      <div class="d">每天练习几分钟，活动脑力，越练越清醒。</div>
+      <div class="go">开始今日训练<span class="ar">›</span></div>
+    </a>
+
+    <a class="sl-card c3" href="exercise.html">
+      <div class="ic">🏃</div>
+      <div class="t">健康运动</div>
+      <div class="d">记录每天的运动情况，动一动，身体更轻松。</div>
+      <div class="go">记录一次运动<span class="ar">›</span></div>
+    </a>
+
+    <button id="slSwitch" class="btn btn-line btn-block mt14">换个账号</button>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/safe-life.js?v=20260917"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  function showHome(r) {
+    $('identifyCard').style.display = 'none';
+    $('slHome').style.display = 'block';
+    $('slWho').textContent = '您好，' + r.name + '。请选择想要使用的功能。';
+  }
+  function showIdentify() {
+    $('identifyCard').style.display = 'block';
+    $('slHome').style.display = 'none';
+  }
+
+  // 已识别过（同一浏览标签内）则直接进入
+  var cur = slResident();
+  if (cur) showHome(cur);
+
+  var busy = false;
+  async function go() {
+    if (busy) return;
+    var pin = $('slPin').value.trim();
+    var name = $('slName').value.trim();
+    if (!validPin(pin)) { toast('请输入手机号后四位', 'error'); $('slPin').focus(); return; }
+    if (!name) { toast('请输入姓名', 'error'); $('slName').focus(); return; }
+    busy = true;
+    try {
+      var list = await findResidentsByPin(pin);
+      if (list === null) { toast('网络异常，请重试', 'error'); return; }
+      var r = (list || []).filter(function (x) { return x.name === name; })[0];
+      if (!r) { toast('未找到档案，请确认后四位和姓名，或联系工作人员', 'error'); return; }
+      slSetResident(r);
+      showHome(r);
+      toast('欢迎，' + r.name);
+    } finally {
+      busy = false;
+    }
+  }
+
+  $('slGo').addEventListener('click', go);
+  $('slPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('slName').focus(); });
+  $('slName').addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+  $('slSwitch').addEventListener('click', function () {
+    slClearResident();
+    $('slPin').value = ''; $('slName').value = '';
+    showIdentify();
+  });
+})();
+</script>
+</body>
+</html>

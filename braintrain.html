@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D85A30">
+<title>莲花社区服务点 · 脑力训练</title>
+<link rel="stylesheet" href="css/style.css?v=20260917">
+<link rel="stylesheet" href="css/safe-life.css?v=20260917">
+</head>
+<body class="sl-body">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>安心生活 · 脑力训练</b><span><a href="safe-life.html">← 安心生活</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+
+  <!-- 选择训练类型 -->
+  <section class="card" id="typeSel">
+    <div class="card-hd"><span class="dot"></span><h2>选择训练类型</h2></div>
+    <p class="hint">每天练几分钟，活动脑力。选一种开始吧。</p>
+    <button class="bt-type" data-type="memory"><span class="ic">🧠</span><span class="bd"><span class="t">记忆力</span><span class="d">看图片，选出刚才出现过的物品</span></span><span class="ar">›</span></button>
+    <button class="bt-type" data-type="attention"><span class="ic">👀</span><span class="bd"><span class="t">注意力</span><span class="d">在多个图案中找出指定图案</span></span><span class="ar">›</span></button>
+    <button class="bt-type" data-type="life"><span class="ic">🏠</span><span class="bd"><span class="t">生活能力</span><span class="d">吃药时间 · 找零 · 生活顺序</span></span><span class="ar">›</span></button>
+  </section>
+
+  <!-- 选择难度 -->
+  <section class="card" id="diffSel" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2>选择难度</h2></div>
+    <div class="bt-diff">
+      <button class="on" id="diffEasy">轻松练习</button>
+      <button class="off" disabled>日常挑战<span class="tag" style="margin-left:4px">后续开放</span></button>
+      <button class="off" disabled>进阶挑战<span class="tag" style="margin-left:4px">后续开放</span></button>
+    </div>
+    <button id="diffStart" class="btn btn-primary btn-block btn-lg mt20">开始训练</button>
+    <button id="diffBack" class="btn btn-line btn-block mt8">返回</button>
+  </section>
+
+  <!-- 答题 -->
+  <section class="card" id="qScreen" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2 id="qTypeTitle">训练</h2></div>
+    <div id="qBody"></div>
+  </section>
+
+  <!-- 结果 -->
+  <section class="card" id="resultScreen" style="display:none">
+    <div class="card-hd"><span class="dot"></span><h2>训练完成</h2></div>
+    <div id="resultBody"></div>
+  </section>
+
+  <p class="bt-foot">训练结果仅用于日常脑力活动和状态观察，不作为医疗诊断依据。</p>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/safe-life.js?v=20260917"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var me = slRequire();
+  if (!me) return;
+
+  var TOTAL = 5;
+  var trainType = null;   // memory | attention | life
+  var difficulty = '轻松练习';
+  var qi = 0, score = 0, startTime = 0;
+
+  var TITLES = { memory: '记忆力', attention: '注意力', life: '生活能力' };
+
+  // ---- 记忆力题目 ----
+  var MEMORY = [
+    { show: ['🍎', '🐱', '🚗'], a: '🐱', opts: ['🐱', '🐶', '🐟'] },
+    { show: ['🌂', '👟', '🍌'], a: '🍌', opts: ['🍌', '🍎', '🍇'] },
+    { show: ['🏠', '⏰', '🐢'], a: '🐢', opts: ['🐢', '🐸', '🐟'] },
+    { show: ['🎂', '🌸', '📺'], a: '📺', opts: ['📺', '📻', '🎧'] },
+    { show: ['🍜', '🚲', '⚽'], a: '⚽', opts: ['⚽', '🏀', '🎾'] }
+  ];
+
+  // ---- 注意力题目（目标 + 干扰图案）----
+  var ATTN = [
+    { target: '🐟', d: ['🐱', '🐶', '🐰', '🦁', '🐸', '🐢', '🐭', '🐔'] },
+    { target: '🌙', d: ['☀️', '⭐', '☁️', '🌈', '🔥', '💧', '❄️', '🌍'] },
+    { target: '🍓', d: ['🍎', '🍌', '🍇', '🍊', '🍑', '🍒', '🥝', '🍍'] },
+    { target: '🐸', d: ['🐱', '🐶', '🐢', '🐟', '🐰', '🦊', '🐻', '🐭'] },
+    { target: '⚽', d: ['🏀', '🎾', '🏈', '🎱', '🏓', '🏸', '🥏', '🏐'] }
+  ];
+
+  // ---- 生活能力题目 ----
+  var LIFE = [
+    { q: '药盒上写着「早晚各一次」，意思是？', opts: ['一天吃两次，早一次晚一次', '一天只吃一次', '想吃就吃', '一周吃一次'], a: 0, why: '「早晚各一次」就是早上一次、晚上一次。' },
+    { q: '买东西一共 18 元，您给收银员 50 元，应找回多少？', opts: ['22 元', '32 元', '40 元', '28 元'], a: 1, why: '50 减 18 等于 32 元。' },
+    { q: '下面做事的顺序，哪个更合适？', opts: ['先回家再买菜', '先买菜，再回家做饭', '先做饭再买菜', '先睡觉再买菜'], a: 1, why: '先买好菜，回家才能做饭。' },
+    { q: '鸡蛋盒写着「保质期到 9 月 20 日」，今天是 9 月 22 日，还能吃吗？', opts: ['能吃，没问题', '已过保质期，最好别吃', '煮久一点就能吃', '无所谓'], a: 1, why: '过了保质期，为了安全最好别吃。' },
+    { q: '出门前发现下雨了，最合适的是？', opts: ['照常出门不带伞', '带上雨伞再出门', '等雨淋湿', '光脚出门'], a: 1, why: '下雨天带上伞，别淋湿着凉。' }
+  ];
+
+  // ---- 界面切换 ----
+  function show(id) {
+    ['typeSel', 'diffSel', 'qScreen', 'resultScreen'].forEach(function (s) {
+      $(s).style.display = (s === id) ? 'block' : 'none';
+    });
+  }
+
+  // ---- 类型选择 ----
+  $('typeSel').addEventListener('click', function (e) {
+    var b = e.target.closest('.bt-type');
+    if (!b) return;
+    trainType = b.getAttribute('data-type');
+    $('diffStart').textContent = '开始「' + TITLES[trainType] + '」训练';
+    show('diffSel');
+  });
+  $('diffBack').addEventListener('click', function () { show('typeSel'); });
+
+  // ---- 开始训练 ----
+  $('diffStart').addEventListener('click', function () {
+    qi = 0; score = 0; startTime = Date.now();
+    $('qTypeTitle').textContent = TITLES[trainType] + ' · ' + difficulty;
+    renderQ();
+    show('qScreen');
+  });
+
+  // ---- 渲染题目 ----
+  function progress() {
+    return '<div class="bt-progress"><span>第 ' + (qi + 1) + ' / ' + TOTAL + ' 题</span>' +
+      '<span class="track"><span class="fill" style="width:' + Math.round(qi / TOTAL * 100) + '%"></span></span>' +
+      '<span>对 ' + score + ' 题</span></div>';
+  }
+
+  function renderQ() {
+    $('qBody').innerHTML = progress();
+    if (trainType === 'memory') renderMemory();
+    else if (trainType === 'attention') renderAttention();
+    else renderLife();
+  }
+
+  // 记忆力：先展示，再选
+  function renderMemory() {
+    var m = MEMORY[qi];
+    var box = $('qBody');
+    box.insertAdjacentHTML('beforeend',
+      '<div class="bt-q">请先记住下面 ' + m.show.length + ' 个物品：</div>' +
+      '<div class="bt-mem">' + m.show.map(function (x) { return '<div class="mi">' + x + '</div>'; }).join('') + '</div>' +
+      '<button id="memOk" class="btn btn-teal btn-block btn-lg">记住啦，开始选</button>');
+    $('memOk').addEventListener('click', function () {
+      var a = m.opts.indexOf(m.a);
+      box.innerHTML = progress() +
+        '<div class="bt-q">下面哪一个物品是<b>刚才出现过</b>的？</div>';
+      m.opts.forEach(function (o, i) {
+        var b = document.createElement('button');
+        b.className = 'quiz-opt';
+        b.innerHTML = '<span class="k">' + ['A', 'B', 'C'][i] + '</span><span>' + o + '</span>';
+        b.addEventListener('click', function () { answer(i === a, i === a ? '' : '正确答案是 ' + m.a); });
+        box.appendChild(b);
+      });
+    });
+  }
+
+  // 注意力：网格中找目标
+  function renderAttention() {
+    var a = ATTN[qi];
+    // 目标随机放一个格子，其余用干扰图案填充
+    var pos = Math.floor(Math.random() * 9);
+    var grid = [];
+    var di = 0;
+    for (var i = 0; i < 9; i++) grid.push(i === pos ? a.target : a.d[di++]);
+    $('qBody').insertAdjacentHTML('beforeend',
+      '<div class="bt-q">请找出下面这个图案：<span style="font-size:40px;vertical-align:middle">' + a.target + '</span></div>' +
+      '<div class="bt-grid">' + grid.map(function (g, i) {
+        return '<button class="cell" data-i="' + i + '">' + g + '</button>';
+      }).join('') + '</div>');
+    $('qBody').querySelectorAll('.cell').forEach(function (c) {
+      c.addEventListener('click', function () {
+        var i = parseInt(c.getAttribute('data-i'), 10);
+        var hit = (i === pos);
+        c.classList.add(hit ? 'hit' : 'miss');
+        if (!hit) $('qBody').querySelectorAll('.cell')[pos].classList.add('hit');
+        answer(hit, hit ? '' : '要找的是 ' + a.target + '，再认一认它。');
+      });
+    });
+  }
+
+  // 生活能力：选择题
+  function renderLife() {
+    var l = LIFE[qi];
+    $('qBody').insertAdjacentHTML('beforeend', '<div class="quiz-q">' + esc(l.q) + '</div>');
+    var keys = ['A', 'B', 'C', 'D'];
+    l.opts.forEach(function (o, i) {
+      var b = document.createElement('button');
+      b.className = 'quiz-opt';
+      b.innerHTML = '<span class="k">' + keys[i] + '</span><span>' + esc(o) + '</span>';
+      b.addEventListener('click', function () { answer(i === l.a, i === l.a ? '' : '正确答案是 ' + keys[l.a] + '。' + l.why); });
+      $('qBody').appendChild(b);
+    });
+  }
+
+  // ---- 作答 ----
+  var locked = false;
+  function answer(ok, whyText) {
+    if (locked) return;
+    locked = true;
+    if (ok) score++;
+    var last = (qi === TOTAL - 1);
+    var fb = document.createElement('div');
+    fb.style.marginTop = '16px';
+    fb.innerHTML =
+      '<div class="quiz-fb ' + (ok ? 'ok' : 'no') + '">' +
+        (ok ? '✅ <b>答对了！</b>' : '❌ <b>' + esc(whyText) + '</b>') +
+      '</div>' +
+      '<button id="qNext" class="btn btn-teal btn-block btn-lg mt14">' + (last ? '看结果' : '下一题') + '</button>';
+    $('qBody').appendChild(fb);
+    $('qNext').addEventListener('click', function () {
+      if (last) finish(); else { qi++; locked = false; renderQ(); }
+    });
+  }
+
+  // ---- 完成 ----
+  async function finish() {
+    var duration = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    var msg = score === TOTAL ? '满分！您真棒！🎉'
+      : (score >= 4 ? '很好，继续保持！👍'
+      : (score >= 3 ? '不错，多练练会更好！'
+      : '别灰心，重在参与，再练一次吧！'));
+    $('resultBody').innerHTML =
+      '<div class="bt-result">' +
+        '<div class="big">' + score + '<small> / ' + TOTAL + ' 题</small></div>' +
+        '<div class="sub">用时约 ' + duration + ' 秒 · 正确率 ' + Math.round(score / TOTAL * 100) + '%</div>' +
+        '<div class="encourage">' + msg + '</div>' +
+      '</div>' +
+      '<button id="retry" class="btn btn-primary btn-block btn-lg mt20">再练一次</button>' +
+      '<a href="safe-life.html" class="btn btn-line btn-block mt8">返回首页</a>';
+    $('retry').addEventListener('click', function () { qi = 0; score = 0; startTime = Date.now(); locked = false; renderQ(); show('qScreen'); });
+    show('resultScreen');
+
+    // 保存训练记录
+    var sb = getSupabase();
+    if (!sb) return;
+    var { error } = await sb.from('sl_trainings').insert({
+      resident_id: me.id, train_type: trainType, difficulty: difficulty,
+      correct: score, total: TOTAL, duration_seconds: duration
+    });
+    if (error) console.error(error);
+  }
+})();
+</script>
+</body>
+</html>

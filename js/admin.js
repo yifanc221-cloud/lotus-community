@@ -52,7 +52,9 @@
   $('tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-p]');
     if (!b) return;
-    switchPanel(b.getAttribute('data-p'));
+    var p = b.getAttribute('data-p');
+    switchPanel(p);
+    if (p === 'pSafeLife') loadSafeLife();
   });
 
   function switchPanel(p) {
@@ -750,8 +752,109 @@
     }
   }
 
+  // ================= 安心生活（工作人员查看） =================
+  var SL_SECTION = { reminder: '今日提醒', cases: '常见案例', quiz: '小测试' };
+  var SL_TYPE = { memory: '记忆力', attention: '注意力', life: '生活能力' };
+  var SL_HELP = { family: '联系家属', staff: '联系工作人员', police: '拨打96110/110' };
+  var SL_STATUS = ['待跟进', '跟进中', '已完成'];
+
+  function slStatusSelect(h) {
+    return '<select class="select" data-help="' + h.id + '" style="padding:6px 8px;font-size:13px;width:auto">' +
+      SL_STATUS.map(function (s) {
+        return '<option value="' + s + '"' + (h.status === s ? ' selected' : '') + '>' + s + '</option>';
+      }).join('') + '</select>';
+  }
+
+  async function loadSafeLife() {
+    var box = $('slList');
+    box.innerHTML = '<div class="empty">加载中…</div>';
+    var [reads, trains, exes, helps, residents] = await Promise.all([
+      sb.from('sl_reads').select('resident_id,section,created_at').order('created_at', { ascending: false }),
+      sb.from('sl_trainings').select('resident_id,train_type,difficulty,correct,total,duration_seconds,created_at').order('created_at', { ascending: false }),
+      sb.from('sl_exercises').select('resident_id,ex_type,ex_date,duration_minutes,steps,feeling,created_at').order('ex_date', { ascending: false }),
+      sb.from('sl_help_requests').select('resident_id,help_type,note,status,created_at').order('created_at', { ascending: false }),
+      sb.from('residents').select('id,name,pin').order('name', { ascending: true })
+    ]);
+    reads = reads.data || []; trains = trains.data || []; exes = exes.data || [];
+    helps = helps.data || []; residents = residents.data || [];
+
+    var withRec = {};
+    reads.forEach(function (r) { withRec[r.resident_id] = 1; });
+    trains.forEach(function (r) { withRec[r.resident_id] = 1; });
+    exes.forEach(function (r) { withRec[r.resident_id] = 1; });
+    helps.forEach(function (r) { withRec[r.resident_id] = 1; });
+
+    var list = residents.filter(function (r) { return withRec[r.id]; });
+    if (!list.length) { box.innerHTML = '<div class="empty">暂无安心生活记录</div>'; return; }
+
+    var g = {};
+    list.forEach(function (r) { g[r.id] = { reads: [], trains: [], exes: [], helps: [] }; });
+    reads.forEach(function (x) { if (g[x.resident_id]) g[x.resident_id].reads.push(x); });
+    trains.forEach(function (x) { if (g[x.resident_id]) g[x.resident_id].trains.push(x); });
+    exes.forEach(function (x) { if (g[x.resident_id]) g[x.resident_id].exes.push(x); });
+    helps.forEach(function (x) { if (g[x.resident_id]) g[x.resident_id].helps.push(x); });
+
+    box.innerHTML = list.map(function (res) {
+      var d = g[res.id];
+
+      // 防诈骗阅读
+      var seen = {};
+      var readTxt = d.reads.map(function (r) { return SL_SECTION[r.section]; })
+        .filter(function (s) { if (!s || seen[s]) return false; seen[s] = 1; return true; }).join('、') || '—';
+
+      // 脑力训练
+      var trainTxt = '—';
+      if (d.trains.length) {
+        var t0 = d.trains[0];
+        trainTxt = d.trains.length + ' 次 · 最近 ' + (SL_TYPE[t0.train_type] || t0.train_type) +
+          ' ' + t0.correct + '/' + t0.total + '（' + fmtDate(t0.created_at) + '）';
+      }
+
+      // 运动记录
+      var exTxt = '—';
+      if (d.exes.length) {
+        var e0 = d.exes[0];
+        exTxt = d.exes.length + ' 次 · 最近 ' + e0.ex_type + ' ' + fmtDate(e0.ex_date) +
+          ' ' + e0.duration_minutes + '分钟' + (e0.feeling ? ' · ' + e0.feeling : '');
+      }
+
+      // 求助记录
+      var helpHtml = d.helps.length
+        ? d.helps.map(function (h) {
+            return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line)">' +
+              '<span style="font-size:13.5px">' + (SL_HELP[h.help_type] || h.help_type) +
+                (h.note ? ' · ' + esc(h.note) : '') + ' · ' + fmtTime(h.created_at) + '</span>' +
+              slStatusSelect(h) + '</div>';
+          }).join('')
+        : '<div style="font-size:13.5px;color:var(--ink3)">—</div>';
+
+      return '<div class="card" style="padding:16px 16px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+          '<b style="font-size:17px">' + esc(res.name) + '</b>' +
+          '<span class="tag tag-gray">后四位 ' + esc(res.pin) + '</span>' +
+        '</div>' +
+        '<div style="font-size:14px;color:var(--ink2);line-height:1.6">' +
+          '<div>🛡️ 防诈骗阅读：' + esc(readTxt) + '</div>' +
+          '<div>🧠 脑力训练：' + esc(trainTxt) + '</div>' +
+          '<div>🏃 运动记录：' + esc(exTxt) + '</div>' +
+        '</div>' +
+        '<div style="margin-top:4px;font-size:14px;color:var(--ink2)">📣 求助跟进：</div>' + helpHtml +
+      '</div>';
+    }).join('');
+  }
+
+  $('slList').addEventListener('change', async function (e) {
+    var sel = e.target.closest('select[data-help]');
+    if (!sel) return;
+    var id = sel.getAttribute('data-help');
+    var status = sel.value;
+    var { error } = await sb.from('sl_help_requests').update({ status: status }).eq('id', id);
+    if (error) { console.error(error); toast('更新失败，请重试', 'error'); loadSafeLife(); return; }
+    toast('已更新为「' + status + '」', 'success');
+  });
+
   function refreshAll() {
-    loadActAdmin(); refreshSelects(); loadStat(); loadHomeAdmin();
+    loadActAdmin(); refreshSelects(); loadStat(); loadHomeAdmin(); loadSafeLife();
   }
 
   birthInit();

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#BA7517">
+<title>莲花社区服务点 · 健康运动</title>
+<link rel="stylesheet" href="css/style.css?v=20260917">
+<link rel="stylesheet" href="css/safe-life.css?v=20260917">
+<style>
+.ex-type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ex-type {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 76px;
+  border: 2px solid var(--line); border-radius: 14px; background: #fff;
+  font-family: inherit; cursor: pointer; padding: 10px 4px;
+}
+.ex-type .em { font-size: 30px; line-height: 1; }
+.ex-type .tx { font-size: 14px; font-weight: 700; color: var(--ink2); }
+.ex-type.on { border-color: var(--teal); background: var(--teal-x); }
+.ex-type.on .tx { color: var(--teal); }
+</style>
+</head>
+<body class="sl-body">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div>
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>安心生活 · 健康运动</b><span><a href="safe-life.html">← 安心生活</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+
+  <!-- 四项数据 -->
+  <section class="card">
+    <div class="card-hd"><span class="dot"></span><h2>我的运动情况</h2></div>
+    <div class="stat-grid">
+      <div class="stat s1"><div class="lab">今日运动</div><div class="val"><b id="sTodayMin">0</b><small>分钟</small></div></div>
+      <div class="stat s2"><div class="lab">今日步数</div><div class="val"><b id="sTodaySteps">0</b><small>步</small></div></div>
+      <div class="stat s3"><div class="lab">本周运动</div><div class="val"><b id="sWeek">0</b><small>次</small></div></div>
+      <div class="stat s4"><div class="lab">连续活动</div><div class="val"><b id="sStreak">0</b><small>天</small></div></div>
+    </div>
+    <button id="exAdd" class="btn btn-primary btn-block btn-lg mt14">🏃 记录一次运动</button>
+  </section>
+
+  <!-- 成功提示 -->
+  <section class="card" id="exSuccess" style="display:none">
+    <div class="sl-success">
+      <div class="em">🎉</div>
+      <div class="t">记录成功！</div>
+      <div class="s">今天也有好好照顾身体。</div>
+      <div class="warn-note" id="exWarn" style="display:none">请先停止运动并休息。如持续出现胸闷、头晕或明显疼痛，请及时联系家属或就医。</div>
+    </div>
+  </section>
+
+  <!-- 最近记录 -->
+  <section class="card">
+    <div class="card-hd"><span class="dot"></span><h2>最近的运动记录</h2></div>
+    <div id="exList"><div class="empty"><span class="em-ico">🏃</span>还没有运动记录，点上面的按钮记一笔吧。</div></div>
+  </section>
+
+</main>
+
+<!-- 记录运动弹窗 -->
+<div class="modal-mask" id="exMask" style="display:none">
+  <div class="modal">
+    <div class="modal-hd"><h3>记录一次运动</h3><button class="modal-close" id="exClose">✕</button></div>
+
+    <div class="field">
+      <label>运动类型</label>
+      <div class="ex-type-grid" id="exType"></div>
+    </div>
+    <div class="field">
+      <label for="exDate">运动日期</label>
+      <input id="exDate" class="input" type="date">
+    </div>
+    <div class="field">
+      <label for="exMin">持续时间（分钟）</label>
+      <input id="exMin" class="input" type="number" inputmode="numeric" min="1" placeholder="例如 30">
+    </div>
+    <div class="field">
+      <label for="exSteps">步数（选填）</label>
+      <input id="exSteps" class="input" type="number" inputmode="numeric" min="0" placeholder="走了多少步，可留空">
+    </div>
+    <div class="field">
+      <label for="exDist">距离·公里（选填）</label>
+      <input id="exDist" class="input" type="number" inputmode="decimal" min="0" step="0.1" placeholder="可留空">
+    </div>
+    <div class="field">
+      <label>运动后的感受</label>
+      <div class="feel-grid" id="exFeel"></div>
+    </div>
+    <button id="exSubmit" class="btn btn-teal btn-block btn-lg">保存记录</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script src="js/safe-life.js?v=20260917"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var me = slRequire();
+  if (!me) return;
+
+  var EX_TYPES = [
+    { t: '散步', ic: '🚶' }, { t: '八段锦', ic: '🧘' }, { t: '太极', ic: '☯️' }, { t: '广场舞', ic: '💃' },
+    { t: '拉伸运动', ic: '🤸' }, { t: '健身操', ic: '🏋️' }, { t: '游泳', ic: '🏊' }, { t: '其他', ic: '🏃' }
+  ];
+  var EX_ICON = {};
+  EX_TYPES.forEach(function (x) { EX_ICON[x.t] = x.ic; });
+
+  var FEELINGS = [
+    { t: '很舒服', em: '😊' }, { t: '还不错', em: '🙂' }, { t: '有点累', em: '😐' }, { t: '不舒服', em: '😣' }
+  ];
+
+  var selType = null, selFeel = null;
+
+  function isoDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function todayISO() { return isoDate(new Date()); }
+
+  // ---- 渲染表单选项 ----
+  function renderType() {
+    $('exType').innerHTML = EX_TYPES.map(function (x) {
+      return '<button class="ex-type" data-t="' + esc(x.t) + '"><span class="em">' + x.ic + '</span><span class="tx">' + esc(x.t) + '</span></button>';
+    }).join('');
+    $('exType').querySelectorAll('.ex-type').forEach(function (b) {
+      b.addEventListener('click', function () {
+        selType = b.getAttribute('data-t');
+        $('exType').querySelectorAll('.ex-type').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+      });
+    });
+  }
+  function renderFeel() {
+    $('exFeel').innerHTML = FEELINGS.map(function (f) {
+      return '<button class="feel' + (f.t === '不舒服' ? ' warn' : '') + '" data-f="' + esc(f.t) + '"><span class="em">' + f.em + '</span><span class="tx">' + esc(f.t) + '</span></button>';
+    }).join('');
+    $('exFeel').querySelectorAll('.feel').forEach(function (b) {
+      b.addEventListener('click', function () {
+        selFeel = b.getAttribute('data-f');
+        $('exFeel').querySelectorAll('.feel').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+      });
+    });
+  }
+
+  // ---- 加载统计 + 列表 ----
+  async function loadAll() {
+    var sb = getSupabase();
+    if (!sb) return;
+    var { data, error } = await sb.from('sl_exercises').select('*').eq('resident_id', me.id).order('ex_date', { ascending: false });
+    if (error) { console.error(error); return; }
+    data = data || [];
+
+    // 统计
+    var today = todayISO();
+    var daySet = {};
+    var weekStart = new Date();
+    var dow = (weekStart.getDay() + 6) % 7;   // 周一=0
+    weekStart.setDate(weekStart.getDate() - dow);
+    weekStart.setHours(0, 0, 0, 0);
+    var todayMin = 0, todaySteps = 0, weekCount = 0;
+    data.forEach(function (r) {
+      daySet[r.ex_date] = true;
+      if (r.ex_date === today) {
+        todayMin += r.duration_minutes || 0;
+        todaySteps += r.steps || 0;
+      }
+      var d = new Date(r.ex_date);
+      if (d >= weekStart) weekCount++;
+    });
+
+    // 连续活动天数（今天没有记录则从昨天起算）
+    var streak = 0;
+    var cur = new Date();
+    if (!daySet[isoDate(cur)]) cur.setDate(cur.getDate() - 1);
+    while (daySet[isoDate(cur)]) { streak++; cur.setDate(cur.getDate() - 1); }
+
+    $('sTodayMin').textContent = todayMin;
+    $('sTodaySteps').textContent = todaySteps;
+    $('sWeek').textContent = weekCount;
+    $('sStreak').textContent = streak;
+
+    // 列表（最近 10 条）
+    var recent = data.slice(0, 10);
+    if (!recent.length) {
+      $('exList').innerHTML = '<div class="empty"><span class="em-ico">🏃</span>还没有运动记录，点上面的按钮记一笔吧。</div>';
+    } else {
+      $('exList').innerHTML = recent.map(function (r) {
+        var meta = [fmtDate(r.ex_date), r.duration_minutes + ' 分钟'];
+        if (r.steps) meta.push(r.steps + ' 步');
+        if (r.distance) meta.push(r.distance + ' 公里');
+        var feel = FEELINGS.filter(function (f) { return f.t === r.feeling; })[0];
+        return '<div class="ex-item">' +
+          '<span class="ic">' + (EX_ICON[r.ex_type] || '🏃') + '</span>' +
+          '<div class="bd"><div class="t">' + esc(r.ex_type) + '</div><div class="m">' + meta.join(' · ') + '</div></div>' +
+          '<span class="feel">' + (feel ? feel.em : '🙂') + '</span></div>';
+      }).join('');
+    }
+  }
+
+  // ---- 弹窗 ----
+  function openModal() {
+    selType = null; selFeel = null;
+    $('exDate').value = todayISO();
+    $('exMin').value = ''; $('exSteps').value = ''; $('exDist').value = '';
+    renderType(); renderFeel();
+    $('exMask').style.display = 'flex';
+  }
+  function closeModal() { $('exMask').style.display = 'none'; }
+
+  $('exAdd').addEventListener('click', openModal);
+  $('exClose').addEventListener('click', closeModal);
+  $('exMask').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+
+  // ---- 提交 ----
+  $('exSubmit').addEventListener('click', async function () {
+    var sb = getSupabase();
+    if (!selType) { toast('请选择运动类型', 'error'); return; }
+    var date = $('exDate').value;
+    if (!date) { toast('请选择运动日期', 'error'); return; }
+    var min = parseInt($('exMin').value, 10);
+    if (!min || min < 1) { toast('请填写运动时长（分钟）', 'error'); $('exMin').focus(); return; }
+    if (!selFeel) { toast('请选择运动后的感受', 'error'); return; }
+
+    var payload = {
+      resident_id: me.id,
+      ex_type: selType,
+      ex_date: date,
+      duration_minutes: min,
+      steps: $('exSteps').value ? parseInt($('exSteps').value, 10) : null,
+      distance: $('exDist').value ? parseFloat($('exDist').value) : null,
+      feeling: selFeel
+    };
+    var { error } = await sb.from('sl_exercises').insert(payload);
+    if (error) { console.error(error); toast('保存失败，请重试', 'error'); return; }
+
+    closeModal();
+    $('exWarn').style.display = (selFeel === '不舒服') ? 'block' : 'none';
+    $('exSuccess').style.display = 'block';
+    $('exSuccess').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('记录成功');
+    loadAll();
+  });
+
+  loadAll();
+})();
+</script>
+</body>
+</html>

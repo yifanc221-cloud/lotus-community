@@ -261,11 +261,11 @@ language plpgsql security definer set search_path = public
 as $$
 declare v_cutoff date; v_until timestamptz; v_count int;
 begin
-  select coalesce(absence_since::date, '1970-01-01'::date), banned_until
-    into v_cutoff, v_until from public.residents where id = p_resident_id;
+  select coalesce(r.absence_since::date, '1970-01-01'::date), r.banned_until
+    into v_cutoff, v_until from public.residents r where r.id = p_resident_id;
 
   if v_until is not null and v_until > now() then
-    return query select absence_count, banned_until from public.residents where id = p_resident_id;
+    return query select r.absence_count, r.banned_until from public.residents r where r.id = p_resident_id;
     return;
   end if;
 
@@ -281,7 +281,7 @@ begin
     update public.residents set absence_count = v_count where id = p_resident_id;
   end if;
 
-  return query select absence_count, banned_until from public.residents where id = p_resident_id;
+  return query select r.absence_count, r.banned_until from public.residents r where r.id = p_resident_id;
 end $$;
 
 grant execute on function public.recompute_resident_absence(uuid) to anon;

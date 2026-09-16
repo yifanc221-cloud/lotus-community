@@ -22,8 +22,8 @@
            '请在方框里输入您手机号码的最后四位数字，然后点确认签到。']);
   }
   function speakNameGuide() {
-    speak(['您是第一次来，需要留下姓名和出生年月日。',
-           '请在方框里写下您的名字，再选择您的出生年份、月份和日子。',
+    speak(['您是第一次来，需要留下姓名。',
+           '请在方框里写下您的名字，然后点确认并签到。',
            '填一次就好，以后再来就不用再填了。']);
   }
   function speakPickGuide() {
@@ -151,14 +151,12 @@
     }
   }
 
-  // 首次建档提交
+  // 首次建档提交（不再采集出生年月日，由「我的」页首次登录时补填）
   async function onNew() {
     var name = $('nameInput').value.trim();
     if (!name) { toast('请输入姓名', 'error'); return; }
-    var birth = birthRead($('stepNew'));
-    if (!birth) { toast('请选择出生年月日', 'error'); return; }
     var pin = $('pinInput').value.trim();
-    var resident = await ensureResident(pin, name, birth);
+    var resident = await ensureResident(pin, name, null);
     if (!resident) { toast('建档失败，请重试', 'error'); return; }
     doCheckin(resident);
   }
@@ -224,6 +222,5 @@
   $('leaveSubmit').addEventListener('click', onLeave);
 
   // 初始化
-  birthInit();
   loadActivity();
 })();

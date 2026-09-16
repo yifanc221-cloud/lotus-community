@@ -59,6 +59,7 @@
     <button data-p="pChk">签到管理</button>
     <button data-p="pPho">照片管理</button>
     <button data-p="pStat">数据看板</button>
+    <button data-p="pHome">首页内容</button>
     <button data-p="pArchive">存档导出</button>
   </div>
 
@@ -160,6 +161,54 @@
       </div>
     </section>
 
+    <!-- 首页内容 -->
+    <section class="panel" id="pHome">
+      <div class="card">
+        <div class="card-hd"><span class="dot"></span><h2>开放状态 &amp; 联系方式</h2></div>
+        <div class="field">
+          <label>今日开放状态</label>
+          <div class="btn-row" style="margin-top:0">
+            <button class="btn btn-teal on" id="setOpenBtn" type="button">今日开放</button>
+            <button class="btn btn-line" id="setClosedBtn" type="button">今日休息</button>
+          </div>
+        </div>
+        <div class="field"><label for="setHours">开放时间</label><input id="setHours" class="input" type="text" placeholder="如：周一至周日 9:00—17:30"></div>
+        <div class="field"><label for="setAddress">服务点地址</label><input id="setAddress" class="input" type="text" placeholder="如：珠海市横琴……"></div>
+        <div class="field"><label for="setPhone">联系电话</label><input id="setPhone" class="input" type="text" placeholder="如：0756-XXXXXXX"></div>
+        <button class="btn btn-primary btn-block" id="settingsSave" type="button">保存设置</button>
+      </div>
+
+      <div class="card mt8">
+        <div class="card-hd"><span class="dot"></span><h2>发布通知</h2></div>
+        <div class="field"><label for="nTitle">通知标题</label><input id="nTitle" class="input" type="text" placeholder="如：本周活动安排"></div>
+        <div class="field"><label for="nContent">通知内容</label><textarea id="nContent" class="input" placeholder="可选"></textarea></div>
+        <div class="field" style="display:flex;align-items:center;gap:10px">
+          <input id="nPin" type="checkbox" style="width:20px;height:20px">
+          <label for="nPin" style="margin:0;font-size:15px">置顶显示</label>
+        </div>
+        <button class="btn btn-primary btn-block" id="noticeAdd" type="button">发布通知</button>
+        <div id="noticeAdminList" class="mt14"></div>
+      </div>
+
+      <div class="card mt8">
+        <div class="card-hd"><span class="dot"></span><h2>服务项目</h2></div>
+        <div class="field"><label for="sName">项目名称</label><input id="sName" class="input" type="text" placeholder="如：助餐配餐"></div>
+        <div class="field"><label for="sDesc">一句话介绍</label><input id="sDesc" class="input" type="text" placeholder="可选"></div>
+        <div class="field"><label for="sIcon">图标（emoji）</label><input id="sIcon" class="input" type="text" placeholder="如：🍚"></div>
+        <button class="btn btn-primary btn-block" id="svcAdd" type="button">添加项目</button>
+        <div id="svcAdminList" class="mt14"></div>
+      </div>
+
+      <div class="card mt8">
+        <div class="card-hd"><span class="dot"></span><h2>常用办事入口</h2></div>
+        <div class="field"><label for="lName">入口名称</label><input id="lName" class="input" type="text" placeholder="如：活动签到"></div>
+        <div class="field"><label for="lIcon">图标（emoji）</label><input id="lIcon" class="input" type="text" placeholder="如：✅"></div>
+        <div class="field"><label for="lHref">跳转链接</label><input id="lHref" class="input" type="text" placeholder="如：checkin.html 或 #contact"></div>
+        <button class="btn btn-primary btn-block" id="linkAdd" type="button">添加入口</button>
+        <div id="linkAdminList" class="mt14"></div>
+      </div>
+    </section>
+
     <!-- 存档导出 -->
     <section class="panel" id="pArchive">
       <div class="card">
@@ -214,6 +263,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/common.js?v=20260916"></script>
-<script src="js/admin.js?v=20260916"></script>
+<script src="js/admin.js?v=20260917"></script>
 </body>
 </html>

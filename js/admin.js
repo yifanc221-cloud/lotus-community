@@ -409,6 +409,124 @@
     }).join('');
   }
 
+  // ================= 首页内容（通知/服务/入口/设置） =================
+  var openNow = true;
+
+  function setOpenNow(v) {
+    openNow = v;
+    var ob = $('setOpenBtn'), cb = $('setClosedBtn');
+    ob.classList.toggle('on', v);
+    cb.classList.toggle('on', !v);
+    if (v) {
+      ob.style.background = 'var(--teal)'; ob.style.color = '#fff'; ob.style.borderColor = 'var(--teal)';
+      cb.style.background = ''; cb.style.color = ''; cb.style.borderColor = '';
+    } else {
+      cb.style.background = '#C0392B'; cb.style.color = '#fff'; cb.style.borderColor = '#C0392B';
+      ob.style.background = ''; ob.style.color = ''; ob.style.borderColor = '';
+    }
+  }
+
+  async function loadHomeAdmin() {
+    var { data: settings } = await sb.from('site_settings').select('key,value');
+    var s = {};
+    (settings || []).forEach(function (x) { s[x.key] = x.value; });
+    setOpenNow(s.open_status !== 'closed');
+    $('setHours').value = s.open_hours || '';
+    $('setAddress').value = s.address || '';
+    $('setPhone').value = s.phone || '';
+
+    var { data: notices } = await sb.from('notices').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
+    notices = notices || [];
+    $('noticeAdminList').innerHTML = notices.length ? notices.map(function (n) {
+      return '<div class="act-item"><div class="act-title">' + (n.is_pinned ? '<span class="tag tag-coral">置顶</span> ' : '') + esc(n.title) + '</div>'
+        + '<div class="act-meta">' + (n.content ? esc(n.content) : '') + '</div>'
+        + '<div class="act-foot"><button class="btn btn-sm btn-line" data-npin="' + n.id + '">' + (n.is_pinned ? '取消置顶' : '置顶') + '</button>'
+        + '<button class="btn btn-sm btn-line" data-ndel="' + n.id + '" style="color:#C0392B">删除</button></div></div>';
+    }).join('') : '<div class="empty">暂无通知</div>';
+
+    var { data: svcs } = await sb.from('services').select('*').order('sort', { ascending: true });
+    svcs = svcs || [];
+    $('svcAdminList').innerHTML = svcs.length ? svcs.map(function (sv) {
+      return '<div class="act-item"><div class="act-title">' + (sv.icon ? esc(sv.icon) + ' ' : '') + esc(sv.name) + '</div>'
+        + '<div class="act-meta">' + (sv.description ? esc(sv.description) : '') + '</div>'
+        + '<div class="act-foot"><button class="btn btn-sm btn-line" data-sdel="' + sv.id + '" style="color:#C0392B">删除</button></div></div>';
+    }).join('') : '<div class="empty">暂无服务项目</div>';
+
+    var { data: links } = await sb.from('quick_links').select('*').order('sort', { ascending: true });
+    links = links || [];
+    $('linkAdminList').innerHTML = links.length ? links.map(function (l) {
+      return '<div class="act-item"><div class="act-title">' + (l.icon ? esc(l.icon) + ' ' : '') + esc(l.name) + '</div>'
+        + '<div class="act-meta">' + esc(l.href || '') + '</div>'
+        + '<div class="act-foot"><button class="btn btn-sm btn-line" data-ldel="' + l.id + '" style="color:#C0392B">删除</button></div></div>';
+    }).join('') : '<div class="empty">暂无办事入口</div>';
+  }
+
+  $('setOpenBtn').addEventListener('click', function () { setOpenNow(true); });
+  $('setClosedBtn').addEventListener('click', function () { setOpenNow(false); });
+
+  $('settingsSave').addEventListener('click', async function () {
+    var kv = [
+      ['open_status', openNow ? 'open' : 'closed'],
+      ['open_hours', $('setHours').value.trim()],
+      ['address', $('setAddress').value.trim()],
+      ['phone', $('setPhone').value.trim()]
+    ];
+    for (var i = 0; i < kv.length; i++) {
+      var { error } = await sb.from('site_settings').upsert({ key: kv[i][0], value: kv[i][1], updated_at: new Date().toISOString() });
+      if (error) { console.error(error); toast('保存失败', 'error'); return; }
+    }
+    toast('设置已保存', 'success');
+  });
+
+  $('noticeAdd').addEventListener('click', async function () {
+    var title = $('nTitle').value.trim();
+    if (!title) { toast('请填写通知标题', 'error'); return; }
+    var { error } = await sb.from('notices').insert({ title: title, content: $('nContent').value.trim() || null, is_pinned: $('nPin').checked });
+    if (error) { toast('发布失败', 'error'); return; }
+    toast('已发布', 'success');
+    $('nTitle').value = ''; $('nContent').value = ''; $('nPin').checked = false;
+    loadHomeAdmin();
+  });
+
+  $('svcAdd').addEventListener('click', async function () {
+    var name = $('sName').value.trim();
+    if (!name) { toast('请填写项目名称', 'error'); return; }
+    var { error } = await sb.from('services').insert({ name: name, description: $('sDesc').value.trim() || null, icon: $('sIcon').value.trim() || null });
+    if (error) { toast('添加失败', 'error'); return; }
+    toast('已添加', 'success');
+    $('sName').value = ''; $('sDesc').value = ''; $('sIcon').value = '';
+    loadHomeAdmin();
+  });
+
+  $('linkAdd').addEventListener('click', async function () {
+    var name = $('lName').value.trim();
+    if (!name) { toast('请填写入口名称', 'error'); return; }
+    var { error } = await sb.from('quick_links').insert({ name: name, icon: $('lIcon').value.trim() || null, href: $('lHref').value.trim() || null });
+    if (error) { toast('添加失败', 'error'); return; }
+    toast('已添加', 'success');
+    $('lName').value = ''; $('lIcon').value = ''; $('lHref').value = '';
+    loadHomeAdmin();
+  });
+
+  $('noticeAdminList').addEventListener('click', async function (e) {
+    var id = e.target.getAttribute('data-ndel');
+    if (id) { if (confirm('确定删除这条通知？')) { await sb.from('notices').delete().eq('id', id); loadHomeAdmin(); } return; }
+    id = e.target.getAttribute('data-npin');
+    if (id) {
+      var { data: n } = await sb.from('notices').select('is_pinned').eq('id', id).maybeSingle();
+      if (n) { await sb.from('notices').update({ is_pinned: !n.is_pinned }).eq('id', id); loadHomeAdmin(); }
+      return;
+    }
+  });
+  $('svcAdminList').addEventListener('click', async function (e) {
+    var id = e.target.getAttribute('data-sdel');
+    if (id && confirm('确定删除这个服务项目？')) { await sb.from('services').delete().eq('id', id); loadHomeAdmin(); }
+  });
+  $('linkAdminList').addEventListener('click', async function (e) {
+    var id = e.target.getAttribute('data-ldel');
+    if (id && confirm('确定删除这个办事入口？')) { await sb.from('quick_links').delete().eq('id', id); loadHomeAdmin(); }
+  });
+
   // ================= 存档导出（全量 CSV） =================
   function todayStr() {
     var d = new Date();
@@ -587,7 +705,7 @@
   }
 
   function refreshAll() {
-    loadActAdmin(); refreshSelects(); loadStat();
+    loadActAdmin(); refreshSelects(); loadStat(); loadHomeAdmin();
   }
 
   birthInit();

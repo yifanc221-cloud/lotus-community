@@ -428,6 +428,60 @@ details.howto .warn{
   details.howto{display:none}
 }
 
+/* ===== 今日开放状态 ===== */
+.open-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--teal);background:var(--teal-x);border:1.5px solid #BFE4D6;border-radius:999px;padding:3px 11px}
+.open-badge .odot{width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.open-badge.closed{color:#C0392B;background:#FBECEA;border-color:#F0C4BD}
+.open-badge.closed .odot{background:#C0392B}
+
+/* ===== 三个大按钮 ===== */
+.quicknav{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.qnav-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  min-height:82px;border-radius:18px;text-decoration:none;font-weight:700;
+  background:var(--paper);border:2px solid var(--line);box-shadow:0 2px 8px rgba(44,44,42,.05);
+  transition:transform .12s;
+}
+.qnav-btn:active{transform:translateY(2px)}
+.qnav-btn .qi{font-size:30px;line-height:1}
+.qnav-btn .qt{font-size:15px}
+.qnav-btn.q1{background:linear-gradient(160deg,#FFF4EC,#FFFDF9);border-color:#F3C6B2;color:#8E3618}
+.qnav-btn.q2{background:linear-gradient(160deg,#F3FCF8,#FFFDF9);border-color:#BFE4D6;color:#0A5A45}
+.qnav-btn.q3{background:linear-gradient(160deg,#FFFBF0,#FFFDF9);border-color:#F7DFAE;color:#6B4409}
+
+/* ===== 最新通知 ===== */
+.notice-item{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;background:var(--paper);border:2px solid var(--line);border-radius:14px;margin-bottom:9px}
+.notice-item:last-child{margin-bottom:0}
+.notice-item.pinned{border-color:#F7DFAE;background:linear-gradient(160deg,#FFFBF0,#FFFDF9)}
+.notice-ico{flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:var(--coral-x);color:var(--coral);display:flex;align-items:center;justify-content:center;font-size:18px}
+.notice-bd{min-width:0;flex:1}
+.notice-tt{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.4;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.notice-pin{font-size:11px;font-weight:700;color:var(--amber);background:var(--amber-x);border:1px solid #F7DFAE;border-radius:5px;padding:1px 6px}
+.notice-tx{font-size:14px;color:var(--ink2);line-height:1.6;margin-top:3px}
+.notice-tm{font-size:12px;color:var(--ink3);margin-top:4px}
+
+/* ===== 服务项目 ===== */
+.svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.svc-item{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:14px 13px}
+.svc-ico{font-size:26px;line-height:1}
+.svc-nm{font-size:16px;font-weight:700;color:var(--ink);margin-top:7px}
+.svc-ds{font-size:13px;color:var(--ink2);line-height:1.55;margin-top:3px}
+
+/* ===== 常用办事入口 ===== */
+.links-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.link-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;text-decoration:none;background:var(--paper);border:2px solid var(--line);border-radius:16px;color:var(--ink)}
+.link-item:active{transform:translateY(1px)}
+.link-item .li{font-size:26px;line-height:1}
+.link-item .lt{font-size:13.5px;font-weight:600;text-align:center}
+
+/* ===== 联系我们 ===== */
+.contact-card{background:linear-gradient(160deg,#F3FCF8,#FFFDF9);border:2px solid #BFE4D6;border-radius:18px;padding:16px}
+.contact-row{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px}
+.contact-row:last-child{margin-bottom:0}
+.contact-ico{flex:0 0 32px;width:32px;height:32px;border-radius:9px;background:var(--teal-x);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px}
+.contact-lb{font-size:13px;color:var(--ink3)}
+.contact-vl{font-size:15.5px;color:var(--ink);font-weight:600;line-height:1.45}
+
 /* ===== 底部导航（居民端）===== */
 .bottom-nav{
   position:fixed;left:0;right:0;bottom:0;background:var(--paper);
@@ -462,8 +516,8 @@ body.has-nav{padding-bottom:66px}
       <div class="orgsub">莲花社区服务点</div>
     </div>
     <div class="orgtag">
-      <b>服务工作简报</b>
-      <span id="orgRange">—</span>
+      <span class="open-badge" id="openBadge"><span class="odot"></span><span id="openLabel">今日开放</span></span>
+      <span id="openHours" style="display:block;margin-top:4px;font-size:12px">—</span>
     </div>
     <a class="staff-corner" href="admin.html" title="工作人员入口" aria-label="工作人员入口">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -475,6 +529,13 @@ body.has-nav{padding-bottom:66px}
 </header>
 
 <div class="wrap">
+
+  <!-- ============ 三个大按钮 ============ -->
+  <nav class="quicknav" aria-label="快捷入口">
+    <a class="qnav-btn q1" href="#portal"><span class="qi">📅</span><span class="qt">最新活动</span></a>
+    <a class="qnav-btn q2" href="#services"><span class="qi">🧩</span><span class="qt">服务项目</span></a>
+    <a class="qnav-btn q3" href="#contact"><span class="qi">📞</span><span class="qt">联系我们</span></a>
+  </nav>
 
   <!-- ============ 本场活动门户：从这里进入签到页 ============ -->
   <section class="portal" id="portal" aria-labelledby="pTitle">
@@ -502,6 +563,27 @@ body.has-nav{padding-bottom:66px}
     </div>
     <div class="phint" id="pHint"></div>
   </section>
+
+  <!-- ============ 最新通知 ============ -->
+  <section class="sec" id="notices">
+    <div class="sec-hd"><span class="bar"></span><h2>最新通知</h2></div>
+    <div id="noticeList"><div class="card"><p class="hint">加载中…</p></div></div>
+  </section>
+
+  <!-- ============ 服务项目 ============ -->
+  <section class="sec" id="services">
+    <div class="sec-hd"><span class="bar"></span><h2>服务项目</h2></div>
+    <div class="svc-grid" id="svcList"></div>
+  </section>
+
+  <!-- ============ 常用办事入口 ============ -->
+  <section class="sec" id="quicklinks">
+    <div class="sec-hd"><span class="bar"></span><h2>常用办事入口</h2></div>
+    <div class="links-grid" id="linkList"></div>
+  </section>
+
+  <!-- ============ 服务成果简报（2—8月） ============ -->
+  <div class="sec-hd" style="margin-top:22px"><span class="bar"></span><h2>服务成果简报</h2><span class="sub" id="briefRange">—</span></div>
 
   <!-- 月份切换（由 DATA.months 自动生成） -->
   <nav class="mtabs" id="mtabs" role="tablist" aria-label="按月查看"></nav>
@@ -561,6 +643,16 @@ body.has-nav{padding-bottom:66px}
     <b>说明：</b>本页仅收录<b>莲花社区居家养老服务中心</b>的服务数据与活动。建档数量、80岁以上长者数等累计口径均按各月简报原文收录。
     <br><span class="upd" id="updNote">—</span>
   </div>
+
+  <!-- ============ 联系我们 ============ -->
+  <section class="sec" id="contact">
+    <div class="sec-hd"><span class="bar"></span><h2>联系我们</h2></div>
+    <div class="contact-card">
+      <div class="contact-row"><div class="contact-ico">📍</div><div><div class="contact-lb">服务点地址</div><div class="contact-vl" id="ctAddress">—</div></div></div>
+      <div class="contact-row"><div class="contact-ico">📞</div><div><div class="contact-lb">联系电话</div><div class="contact-vl" id="ctPhone">—</div></div></div>
+      <div class="contact-row"><div class="contact-ico">🕘</div><div><div class="contact-lb">开放时间</div><div class="contact-vl" id="ctHours">—</div></div></div>
+    </div>
+  </section>
 
 </div>
 
@@ -1196,7 +1288,7 @@ function buildQuarter(){
   /* 标题 / 副标题全部由 DATA.months 推导，增删月份不用手改 */
   document.title = (DATA.title || '莲花社区居家养老服务中心 · 服务工作简报')
                  + '（' + rangeLabel() + '）';
-  $('orgRange').textContent = rangeLabel();
+  $('briefRange').textContent = rangeLabel() + ' · 共 ' + DATA.months.length + ' 个月';
   $('qRange').textContent = rangeLabel() + '累计';
   var qh = document.querySelector('#qsec .sec-hd h2');
   if (qh) qh.textContent = quarterTitle();
@@ -1509,11 +1601,79 @@ document.addEventListener('keydown', function(e){
   }, {passive:true});
 })();
 
+/* ================= 首页门户内容（通知/服务/入口/联系方式/开放状态） ================= */
+function loadHomeContent(){
+  var sb = getSupabase();
+  if (!sb) {
+    $('openBadge').className = 'open-badge closed';
+    $('openLabel').textContent = '未连接';
+    $('noticeList').innerHTML = '<div class="card"><p class="hint">云端未连接，请检查配置</p></div>';
+    return;
+  }
+
+  /* 开放状态 + 联系方式 */
+  sb.from('site_settings').select('key,value').then(function(r){
+    if (r.error) { console.error(r.error); return; }
+    var s = {};
+    (r.data || []).forEach(function(x){ s[x.key] = x.value; });
+    var open = s.open_status !== 'closed';
+    $('openBadge').className = 'open-badge' + (open ? '' : ' closed');
+    $('openLabel').textContent = open ? '今日开放' : '今日休息';
+    $('openHours').textContent = s.open_hours || '';
+    $('ctAddress').textContent = s.address || '—';
+    $('ctPhone').textContent = s.phone || '—';
+    $('ctHours').textContent = s.open_hours || '—';
+  });
+
+  /* 最新通知（置顶优先，最多 5 条） */
+  sb.from('notices').select('*').eq('published', true)
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(5).then(function(r){
+      if (r.error) { console.error(r.error); return; }
+      var list = r.data || [];
+      if (!list.length) { $('noticeList').innerHTML = '<div class="card"><p class="hint">暂无通知</p></div>'; return; }
+      $('noticeList').innerHTML = list.map(function(n){
+        return '<div class="notice-item' + (n.is_pinned ? ' pinned' : '') + '">'
+          + '<div class="notice-ico">' + (n.is_pinned ? '📌' : '📢') + '</div>'
+          + '<div class="notice-bd">'
+          +   '<div class="notice-tt">' + esc(n.title) + (n.is_pinned ? '<span class="notice-pin">置顶</span>' : '') + '</div>'
+          +   (n.content ? '<div class="notice-tx">' + esc(n.content) + '</div>' : '')
+          +   '<div class="notice-tm">' + fmtTime(n.created_at) + '</div>'
+          + '</div></div>';
+      }).join('');
+    });
+
+  /* 服务项目 */
+  sb.from('services').select('*').order('sort', { ascending: true }).then(function(r){
+    if (r.error) { console.error(r.error); return; }
+    var list = r.data || [];
+    if (!list.length) { $('svcList').innerHTML = '<div class="card"><p class="hint">暂无服务项目</p></div>'; return; }
+    $('svcList').innerHTML = list.map(function(s){
+      return '<div class="svc-item"><div class="svc-ico">' + (s.icon ? esc(s.icon) : '🧩') + '</div>'
+        + '<div class="svc-nm">' + esc(s.name) + '</div>'
+        + (s.description ? '<div class="svc-ds">' + esc(s.description) + '</div>' : '')
+        + '</div>';
+    }).join('');
+  });
+
+  /* 常用办事入口 */
+  sb.from('quick_links').select('*').order('sort', { ascending: true }).then(function(r){
+    if (r.error) { console.error(r.error); return; }
+    var list = r.data || [];
+    if (!list.length) { $('linkList').innerHTML = ''; return; }
+    $('linkList').innerHTML = list.map(function(l){
+      return '<a class="link-item" href="' + esc(l.href || '#') + '"><span class="li">' + (l.icon ? esc(l.icon) : '🔗') + '</span><span class="lt">' + esc(l.name) + '</span></a>';
+    }).join('');
+  });
+}
+
 /* ================= 启动 ================= */
 buildPortal();
 buildTabs();
 showMonth(DATA.months.length - 1);   /* 默认展示最新月份 */
 buildQuarter();
+loadHomeContent();
 
 /* 从签到页返回时（浏览器缓存恢复），人数可能已变 —— 重新读一次 */
 window.addEventListener('pageshow', function(e){ if (e.persisted) buildPortal(); });

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<title>莲花社区服务点 · 服务项目</title>
+<link rel="stylesheet" href="css/style.css?v=20260916">
+<style>
+.svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.svc-item{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 14px;min-height:104px}
+.svc-ico{font-size:30px;line-height:1}
+.svc-nm{font-size:16px;font-weight:700;color:var(--ink);margin-top:10px}
+.svc-ds{font-size:13px;color:var(--ink2);line-height:1.55;margin-top:5px}
+.contact-card{background:linear-gradient(160deg,#F3FCF8,#FFFDF9);border:1.5px solid #BFE4D6;border-radius:16px;padding:16px;margin-top:14px}
+.contact-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.contact-row:last-child{margin-bottom:0}
+.contact-ico{flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:var(--teal-x);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:17px}
+.contact-lb{font-size:12.5px;color:var(--ink3)}
+.contact-vl{font-size:15.5px;color:var(--ink);font-weight:600;line-height:1.45;word-break:break-all}
+</style>
+</head>
+<body class="has-nav">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="lotus-logo" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" fill="#FAECE7"/>
+        <path d="M24 8c4 6 4 12 0 16-4-4-4-10 0-16z" fill="#D85A30"/>
+        <path d="M14 16c6 3 10 8 10 14-5-2-9-6-10-14z" fill="#F0997B"/>
+        <path d="M34 16c-1 8-5 12-10 14 0-6 4-11 10-14z" fill="#EF9F27"/>
+        <path d="M16 34c5-2 10-2 16 1-5 3-10 3-16-1z" fill="#0F6E56"/>
+      </svg>
+    </div>
+    <div style="min-width:0">
+      <div class="orgname">澳门街坊总会广东办事处</div>
+      <div class="orgsub">莲花社区服务点</div>
+    </div>
+    <div class="orgtag"><b>服务项目</b><span><a href="index.html">返回首页</a></span></div>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:640px">
+  <div class="section-title" style="margin-top:16px">我们为社区长者提供以下服务</div>
+  <div class="svc-grid" id="svcList"><div class="empty">加载中…</div></div>
+
+  <div class="section-title" style="margin-top:26px">联系我们</div>
+  <div class="contact-card">
+    <div class="contact-row"><div class="contact-ico">📍</div><div style="min-width:0"><div class="contact-lb">服务点地址</div><div class="contact-vl" id="ctAddress">—</div></div></div>
+    <div class="contact-row"><div class="contact-ico">📞</div><div style="min-width:0"><div class="contact-lb">联系电话</div><div class="contact-vl" id="ctPhone">—</div></div></div>
+    <div class="contact-row"><div class="contact-ico">🕘</div><div style="min-width:0"><div class="contact-lb">开放时间</div><div class="contact-vl" id="ctHours">—</div></div></div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="ico">🏠</span>首页</a>
+  <a href="checkin.html"><span class="ico">📅</span>活动</a>
+  <a href="services.html" class="on"><span class="ico">🧩</span>服务</a>
+  <a href="mine.html"><span class="ico">👤</span>我的</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/common.js?v=20260916"></script>
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  var sb = getSupabase();
+  if (!sb) { $('svcList').innerHTML = '<div class="empty">未连接云端，请检查配置</div>'; return; }
+
+  // 服务项目（按 sort 升序）
+  sb.from('services').select('*').order('sort', { ascending: true }).then(function(r){
+    if (r.error) { console.error(r.error); return; }
+    var list = r.data || [];
+    if (!list.length) { $('svcList').innerHTML = '<div class="empty">暂无服务项目</div>'; return; }
+    $('svcList').innerHTML = list.map(function(s){
+      return '<div class="svc-item"><div class="svc-ico">' + (s.icon ? esc(s.icon) : '🧩') + '</div>'
+        + '<div class="svc-nm">' + esc(s.name) + '</div>'
+        + (s.description ? '<div class="svc-ds">' + esc(s.description) + '</div>' : '')
+        + '</div>';
+    }).join('');
+  });
+
+  // 联系我们（站点设置）
+  sb.from('site_settings').select('key,value').then(function(r){
+    if (r.error) return;
+    var s = {};
+    (r.data || []).forEach(function(x){ s[x.key] = x.value; });
+    $('ctAddress').textContent = s.address || '—';
+    $('ctPhone').textContent = s.phone || '—';
+    $('ctHours').textContent = s.open_hours || '—';
+  });
+})();
+</script>
+</body>
+</html>

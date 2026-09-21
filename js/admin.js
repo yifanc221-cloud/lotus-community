@@ -218,7 +218,8 @@
         var wait = data.filter(function (r) { return r.status === 'waitlist'; }).length;
         top = '<div style="background:#F1FAF5;border:1.5px solid #BFE4D6;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:14px;color:var(--ink2);line-height:1.7">' +
           '✅ <b>已抽签</b>（' + esc(fmtTime(act.lottery_at)) + '）· 中签 <b>' + drawn + '</b> 人 / 候补 <b>' + wait + '</b> 人' +
-          (act.deposit != null ? ' · 押金 ¥' + act.deposit : '') + '</div>';
+          (act.deposit != null ? ' · 押金 ¥' + act.deposit : '') +
+          '　<button class="btn btn-sm btn-line" data-redraw="1" style="color:#C0392B">重新抽签</button></div>';
       }
     }
 
@@ -280,6 +281,13 @@
       var { data: dr, error: de } = await sb.rpc('draw_lottery', { p_activity_id: aid });
       if (de) { toast('抽签失败：' + (de.message || '请检查活动设置'), 'error'); return; }
       toast('抽签完成：中签 ' + dr.drawn + ' 人 / 候补 ' + dr.waitlist + ' 人', 'success');
+      loadRegAdmin(); return;
+    }
+    if (e.target.getAttribute('data-redraw')) {
+      if (!confirm('确定重新抽签？将清空当前中签结果与押金状态，并重新随机抽取。')) return;
+      var { data: rr, error: rre } = await sb.rpc('redraw_lottery', { p_activity_id: aid });
+      if (rre) { toast('重新抽签失败：' + (rre.message || '请检查活动设置'), 'error'); return; }
+      toast('已重新抽签：中签 ' + rr.drawn + ' 人 / 候补 ' + rr.waitlist + ' 人', 'success');
       loadRegAdmin(); return;
     }
     var payId = e.target.getAttribute('data-pay');

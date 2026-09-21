@@ -186,6 +186,14 @@
         + (meta ? '<div class="act-meta">' + esc(meta) + '</div>' : '')
         + '</div><div class="act-go">›</div></div>';
     }).join('');
+
+    // 支持从首页「更多活动」直接打开指定活动详情（?act=<id>）
+    var want = new URLSearchParams(location.search).get('act');
+    if (want) {
+      for (var k = 0; k < acts.length; k++) {
+        if (acts[k].id === want) { openDetail(k); break; }
+      }
+    }
   }
 
   $('actList').addEventListener('click', function(e){

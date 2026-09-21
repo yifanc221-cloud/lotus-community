@@ -564,6 +564,15 @@ body.has-nav{padding-bottom:66px}
     <div class="phint" id="pHint"></div>
   </section>
 
+  <!-- ============ 更多活动 ============ -->
+  <section class="sec" id="moreActs">
+    <div class="sec-hd">
+      <span class="bar"></span><h2>更多活动</h2>
+      <a href="activities.html" style="margin-left:auto;font-size:14px;color:var(--teal);text-decoration:none;font-weight:600">全部 ›</a>
+    </div>
+    <div id="moreActList"><div class="card"><p class="hint">加载中…</p></div></div>
+  </section>
+
   <!-- ============ 今日活动提醒 ============ -->
   <section class="sec" id="todayRemind">
     <div class="sec-hd"><span class="bar"></span><h2>今日活动提醒</h2></div>
@@ -1506,6 +1515,37 @@ function buildPortal(){
     });
 }
 
+/* 首页「更多活动」：列出本场之外的近期活动，点按跳活动页详情 */
+function buildMoreActs(){
+  var sb = getSupabase();
+  var box = $('moreActList');
+  if (!sb){ $('moreActs').style.display = 'none'; return; }
+  sb.from('activities')
+    .select('id,title,date,time,location,is_current,registration_enabled')
+    .order('is_current', { ascending: false })
+    .order('date', { ascending: true })
+    .then(function(r){
+      if (r.error){ console.error(r.error); return; }
+      var acts = (r.data || []).filter(function(a){ return !a.is_current; }).slice(0, 5);
+      if (!acts.length){ $('moreActs').style.display = 'none'; return; }
+      $('moreActs').style.display = '';
+      box.innerHTML = acts.map(function(a){
+        var meta = [a.date ? fmtDate(a.date) : '', a.time || '', a.location || ''].filter(Boolean).join(' · ');
+        var badge = a.registration_enabled
+          ? '<span style="background:var(--teal-x);color:var(--teal);font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px">报名中</span>'
+          : '<span style="background:#EFECE4;color:var(--ink3);font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px">现场参加</span>';
+        return '<a href="activities.html?act=' + encodeURIComponent(a.id) + '" style="display:flex;align-items:center;gap:12px;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;text-decoration:none">'
+          + '<div style="flex:1;min-width:0">'
+          +   '<div style="margin-bottom:4px">' + badge + '</div>'
+          +   '<div style="font-size:16px;font-weight:700;color:var(--ink);line-height:1.4">' + esc(a.title) + '</div>'
+          +   (meta ? '<div style="font-size:13px;color:var(--ink3);margin-top:4px;line-height:1.5">' + esc(meta) + '</div>' : '')
+          + '</div>'
+          + '<div style="font-size:24px;color:#C9C3B6;font-weight:600">›</div>'
+          + '</a>';
+      }).join('');
+    });
+}
+
 /* ================= 交互 ================= */
 var cur = 0;
 
@@ -1734,14 +1774,15 @@ $('tName').addEventListener('keydown', function(e){ if (e.key === 'Enter') onTod
 
 /* ================= 启动 ================= */
 buildPortal();
+buildMoreActs();
 buildTabs();
 showMonth(DATA.months.length - 1);   /* 默认展示最新月份 */
 buildQuarter();
 loadHomeContent();
 
 /* 从签到页返回时（浏览器缓存恢复），人数可能已变 —— 重新读一次 */
-window.addEventListener('pageshow', function(e){ if (e.persisted) buildPortal(); });
-window.addEventListener('focus', buildPortal);
+window.addEventListener('pageshow', function(e){ if (e.persisted){ buildPortal(); buildMoreActs(); } });
+window.addEventListener('focus', function(){ buildPortal(); buildMoreActs(); });
 </script>
 
 <script src="js/register.js?v=20260921"></script>

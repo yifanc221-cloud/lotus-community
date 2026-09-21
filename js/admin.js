@@ -211,7 +211,8 @@
       if (!act.lottery_done) {
         top = '<div style="background:#F1FAF5;border:1.5px solid #BFE4D6;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:14px;color:var(--ink2);line-height:1.7">' +
           '🎲 <b>抽签模式</b> · 已报名 <b>' + data.length + '</b> 人，名额 <b>' + (act.capacity || '未设') + '</b> 人　' +
-          '<button class="btn btn-sm btn-primary" data-draw="1">开始抽签</button></div>';
+          '<button class="btn btn-sm btn-primary" data-draw="1">开始抽签</button>' +
+          '<br><span style="opacity:.8;font-size:13px">⚖️ 同类型历史中签者将降低中签概率（每中签一次约减半）</span></div>';
       } else {
         var drawn = data.filter(function (r) { return r.status === 'drawn'; }).length;
         var wait = data.filter(function (r) { return r.status === 'waitlist'; }).length;

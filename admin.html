@@ -254,6 +254,18 @@
   <div class="modal">
     <div class="modal-hd"><h3 id="actModalTitle">新建活动</h3><button class="modal-close" id="actClose">✕</button></div>
     <div class="field"><label>活动名称</label><input id="aTitle" class="input" type="text" placeholder="如：长者健康养生讲座"></div>
+    <div class="field"><label>活动类型（同类型历史中签者抽签降权）</label>
+      <select id="aCategory" class="select">
+        <option value="">请选择类型（可选）</option>
+        <option value="认知训练">认知训练</option>
+        <option value="肢体训练">肢体训练</option>
+        <option value="讲座">讲座</option>
+        <option value="手工">手工</option>
+        <option value="文娱">文娱</option>
+        <option value="出游">出游</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
     <div class="field"><label>日期</label><input id="aDate" class="input" type="date"></div>
     <div class="field"><label>时段</label><input id="aTime" class="input" type="text" placeholder="如：上午 9:30 - 11:00"></div>
     <div class="field"><label>地点</label><input id="aLocation" class="input" type="text" placeholder="如：莲花社区活动中心四楼"></div>
@@ -290,6 +302,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/common.js?v=20260921"></script>
-<script src="js/admin.js?v=20260917"></script>
+<script src="js/admin.js?v=20260921"></script>
 </body>
 </html>

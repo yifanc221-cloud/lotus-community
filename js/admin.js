@@ -77,6 +77,7 @@
             (a.is_current ? ' <span class="tag tag-coral">本场</span>' : '') +
             (a.registration_enabled ? ' <span class="tag tag-teal">报名中</span>' : '') +
             (a.reg_mode === 'lottery' ? ' <span class="tag tag-amber">抽签</span>' : '') +
+            (a.category ? ' <span class="tag tag-gray">' + esc(a.category) + '</span>' : '') +
           '</div>' +
           '<div class="act-meta">' + esc(fmtDateFull(a.date) || '未定日期') + (a.time ? ' · ' + esc(a.time) : '') + (a.location ? ' · ' + esc(a.location) : '') +
             (a.capacity ? ' · 名额 ' + a.capacity : '') + '</div>' +
@@ -121,6 +122,7 @@
     $('aLocation').value = ''; $('aDesc').value = ''; $('aCapacity').value = ''; $('aDeadline').value = '';
     $('aRegOn').checked = false;
     $('aDeposit').value = ''; $('aDepositDeadline').value = '';
+    $('aCategory').value = '';
     setMode('first_come');
     if (id) {
       sb.from('activities').select('*').eq('id', id).maybeSingle().then(function (r) {
@@ -132,6 +134,7 @@
         setMode(a.reg_mode || 'first_come');
         $('aDeposit').value = a.deposit != null ? a.deposit : '';
         $('aDepositDeadline').value = a.deposit_deadline ? a.deposit_deadline.slice(0, 16) : '';
+        $('aCategory').value = a.category || '';
       });
     }
     $('actMask').style.display = 'flex';
@@ -157,6 +160,7 @@
       registration_deadline: $('aDeadline').value ? new Date($('aDeadline').value).toISOString() : null,
       registration_enabled: $('aRegOn').checked,
       reg_mode: actRegMode,
+      category: $('aCategory').value || null,
       deposit: $('aDeposit').value ? parseFloat($('aDeposit').value) : null,
       deposit_deadline: $('aDepositDeadline').value ? new Date($('aDepositDeadline').value).toISOString() : null,
       created_by: staff.id

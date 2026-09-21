@@ -169,7 +169,7 @@
   async function load() {
     if (!sb) { $('actList').innerHTML = '<div class="empty">未连接云端，请检查配置</div>'; return; }
     var { data, error } = await sb.from('activities')
-      .select('id,title,date,time,location,description,registration_enabled,registration_deadline,capacity,is_current')
+      .select('id,title,date,time,location,description,registration_enabled,registration_deadline,capacity,is_current,reg_mode,deposit,deposit_deadline')
       .order('is_current', { ascending: false })
       .order('date', { ascending: true });
     if (error) { console.error(error); $('actList').innerHTML = '<div class="empty">加载失败，请稍后重试</div>'; return; }
@@ -211,7 +211,7 @@
 
     // 报名方式 + 按钮状态
     var deadline = act.registration_deadline ? fmtTime(act.registration_deadline) : '不限（到场即报）';
-    $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>名额：加载中…';
+    $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>' + (act.reg_mode === 'lottery' ? '报名后抽签确定名额' : '名额：加载中…');
     $('dNote').textContent = '';
     var passed = act.registration_deadline && new Date(act.registration_deadline).getTime() < Date.now();
 
@@ -236,11 +236,19 @@
 
   async function loadRegCount(act) {
     if (!sb) return;
+    var deadline = act.registration_deadline ? fmtTime(act.registration_deadline) : '不限（到场即报）';
+    // 抽签模式：不按名额拦截，只显示已报名人数
+    if (act.reg_mode === 'lottery') {
+      var { count: lc, error: le } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('activity_id', act.id);
+      if (le) { console.error(le); return; }
+      $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>已报名 <b>' + (lc || 0) + '</b> 人' +
+        (act.capacity ? ' · 名额 ' + act.capacity : '') + (act.deposit != null ? ' · 押金 ¥' + act.deposit : '');
+      return;
+    }
     var { count, error } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('activity_id', act.id);
     if (error) { console.error(error); return; }
     var used = count || 0;
     var capTxt = act.capacity ? '<b>' + used + '</b> / <b>' + act.capacity + '</b> 人' : '不限 · 已报 <b>' + used + '</b> 人';
-    var deadline = act.registration_deadline ? fmtTime(act.registration_deadline) : '不限（到场即报）';
     $('dWay').innerHTML = '报名截止：<b>' + esc(deadline) + '</b><br>名额：' + capTxt;
     // 满员处理
     if (act.registration_enabled && act.capacity && used >= act.capacity) {
@@ -324,7 +332,7 @@
     var { data: dup } = await sb.from('registrations').select('id').eq('activity_id', act.id).eq('resident_id', resident.id).maybeSingle();
     if (dup) { regErr('您已报名本场活动，无需重复报名'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
 
-    if (act.capacity) {
+    if (act.reg_mode !== 'lottery' && act.capacity) {
       var { count } = await sb.from('registrations').select('id', { count: 'exact', head: true }).eq('activity_id', act.id);
       if ((count || 0) >= act.capacity) { regErr('本场活动名额已满'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
     }
@@ -337,7 +345,9 @@
     }
 
     regErr('');
-    $('regSub').textContent = '报名成功！' + name + '，欢迎参加「' + (act.title || '本场活动') + '」。';
+    $('regSub').textContent = (act.reg_mode === 'lottery')
+      ? '报名成功！' + name + '，报名截止后将抽签确定名额，请留意结果。'
+      : '报名成功！' + name + '，欢迎参加「' + (act.title || '本场活动') + '」。';
     $('regPin').style.display = 'none';
     $('regName').style.display = 'none';
     $('regSubmit').textContent = '完成'; $('regSubmit').disabled = false;

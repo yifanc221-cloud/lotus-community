@@ -7,6 +7,24 @@
   var me = null;
   var pendingBirth = false;   // 已识别但首次登录、待补出生年月日
 
+  // 报名状态徽标（抽签 / 押金）
+  function regBadge(r, a) {
+    var mode = (a && a.reg_mode) || 'first_come';
+    if (mode !== 'lottery') return '<span class="tag tag-teal">报名成功</span>';
+    var s = r.status || 'registered';
+    var d = r.deposit_status || 'pending';
+    var dep = (a && a.deposit > 0) ? ' ¥' + a.deposit : '';
+    if (s === 'drawn' && d === 'pending') return '<span class="tag tag-coral">🎉 已中签 · 请缴纳押金' + dep + '</span>';
+    if (s === 'drawn' && d === 'paid') return '<span class="tag tag-teal">已中签 · 押金已缴</span>';
+    if (s === 'drawn' && d === 'refunded') return '<span class="tag tag-gray">已中签 · 押金已退</span>';
+    if (s === 'waitlist') {
+      var pos = (r.draw_order != null && a && a.capacity) ? '（第' + (r.draw_order - a.capacity) + '候补）' : '';
+      return '<span class="tag tag-amber">候补中' + pos + '</span>';
+    }
+    if (s === 'cancelled') return '<span class="tag tag-gray">未中签</span>';
+    return '<span class="tag tag-gray">已报名 · 待抽签</span>';
+  }
+
   // 识别身份：手机号后四位 + 姓名，精确匹配
   var identifying = false;
   async function identify() {
@@ -114,14 +132,15 @@
 
     // 我的报名
     var { data: regs, error: e3 } = await sb.from('registrations')
-      .select('id,registered_at,activities(title,date,time)')
+      .select('id,registered_at,status,deposit_status,draw_order,activities(title,date,time,reg_mode,capacity,deposit)')
       .eq('resident_id', me.id)
       .order('registered_at', { ascending: false });
     if (!e3 && regs && regs.length) {
       $('myRegs').innerHTML = regs.map(function (r) {
         var a = r.activities || {};
         return '<div class="act-item"><div class="act-title">' + esc(a.title || '活动') + '</div>' +
-          '<div class="act-meta">' + esc(fmtDateFull(a.date) || '') + (a.time ? ' · ' + esc(a.time) : '') + ' · 报名于 ' + esc(fmtTime(r.registered_at)) + '</div></div>';
+          '<div class="act-meta">' + esc(fmtDateFull(a.date) || '') + (a.time ? ' · ' + esc(a.time) : '') + ' · 报名于 ' + esc(fmtTime(r.registered_at)) + '</div>' +
+          '<div style="margin-top:6px">' + regBadge(r, a) + '</div></div>';
       }).join('');
     } else {
       $('myRegs').innerHTML = '<div class="empty"><span class="em-ico">📋</span>暂无报名记录</div>';

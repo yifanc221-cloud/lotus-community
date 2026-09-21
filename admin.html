@@ -260,6 +260,23 @@
     <div class="field"><label>活动介绍</label><textarea id="aDesc" class="input" placeholder="可选"></textarea></div>
     <div class="field"><label>报名名额（留空 = 不限）</label><input id="aCapacity" class="input" type="number" min="0" placeholder="不限"></div>
     <div class="field"><label>报名截止时间</label><input id="aDeadline" class="input" type="datetime-local"></div>
+    <div class="field">
+      <label>报名方式</label>
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn btn-line on" id="aModeFirst" type="button">先到先得</button>
+        <button class="btn btn-line" id="aModeLottery" type="button">抽签（超额抽签）</button>
+      </div>
+    </div>
+    <div id="aLotteryFields" style="display:none">
+      <div class="field">
+        <label for="aDeposit">押金金额（元）</label>
+        <input id="aDeposit" class="input" type="number" min="0" step="0.5" placeholder="如：10">
+      </div>
+      <div class="field">
+        <label for="aDepositDeadline">押金缴纳截止时间</label>
+        <input id="aDepositDeadline" class="input" type="datetime-local">
+      </div>
+    </div>
     <div class="field" style="display:flex;align-items:center;gap:10px">
       <input id="aRegOn" type="checkbox" style="width:20px;height:20px">
       <label for="aRegOn" style="margin:0;font-size:15px">开放报名</label>

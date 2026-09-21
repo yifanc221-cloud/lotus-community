@@ -9,6 +9,7 @@
   var photoType = 'personal';       // 'personal' | 'group'
   var photoResidentId = null;       // 个人照关联居民
   var chkSelected = null;           // 帮签选中的居民
+  var actRegMode = 'first_come';    // 活动报名方式：first_come | lottery
 
   // ================= 认证 =================
   function showLogin() {
@@ -75,6 +76,7 @@
           '<div class="act-title">' + esc(a.title) +
             (a.is_current ? ' <span class="tag tag-coral">本场</span>' : '') +
             (a.registration_enabled ? ' <span class="tag tag-teal">报名中</span>' : '') +
+            (a.reg_mode === 'lottery' ? ' <span class="tag tag-amber">抽签</span>' : '') +
           '</div>' +
           '<div class="act-meta">' + esc(fmtDateFull(a.date) || '未定日期') + (a.time ? ' · ' + esc(a.time) : '') + (a.location ? ' · ' + esc(a.location) : '') +
             (a.capacity ? ' · 名额 ' + a.capacity : '') + '</div>' +
@@ -105,12 +107,21 @@
     }
   });
 
+  function setMode(mode) {
+    actRegMode = mode;
+    $('aModeFirst').classList.toggle('on', mode === 'first_come');
+    $('aModeLottery').classList.toggle('on', mode === 'lottery');
+    $('aLotteryFields').style.display = (mode === 'lottery') ? 'block' : 'none';
+  }
+
   function openActEditor(id) {
     editingActId = id || null;
     $('actModalTitle').textContent = id ? '编辑活动' : '新建活动';
     $('aTitle').value = ''; $('aDate').value = ''; $('aTime').value = '';
     $('aLocation').value = ''; $('aDesc').value = ''; $('aCapacity').value = ''; $('aDeadline').value = '';
     $('aRegOn').checked = false;
+    $('aDeposit').value = ''; $('aDepositDeadline').value = '';
+    setMode('first_come');
     if (id) {
       sb.from('activities').select('*').eq('id', id).maybeSingle().then(function (r) {
         var a = r.data; if (!a) return;
@@ -118,10 +129,16 @@
         $('aLocation').value = a.location || ''; $('aDesc').value = a.description || ''; $('aCapacity').value = a.capacity || '';
         $('aDeadline').value = a.registration_deadline ? a.registration_deadline.slice(0, 16) : '';
         $('aRegOn').checked = !!a.registration_enabled;
+        setMode(a.reg_mode || 'first_come');
+        $('aDeposit').value = a.deposit != null ? a.deposit : '';
+        $('aDepositDeadline').value = a.deposit_deadline ? a.deposit_deadline.slice(0, 16) : '';
       });
     }
     $('actMask').style.display = 'flex';
   }
+
+  $('aModeFirst').addEventListener('click', function () { setMode('first_come'); });
+  $('aModeLottery').addEventListener('click', function () { setMode('lottery'); });
 
   $('newActBtn').addEventListener('click', function () { openActEditor(null); });
   $('actClose').addEventListener('click', function () { $('actMask').style.display = 'none'; });
@@ -139,6 +156,9 @@
       capacity: $('aCapacity').value ? parseInt($('aCapacity').value, 10) : null,
       registration_deadline: $('aDeadline').value ? new Date($('aDeadline').value).toISOString() : null,
       registration_enabled: $('aRegOn').checked,
+      reg_mode: actRegMode,
+      deposit: $('aDeposit').value ? parseFloat($('aDeposit').value) : null,
+      deposit_deadline: $('aDepositDeadline').value ? new Date($('aDepositDeadline').value).toISOString() : null,
       created_by: staff.id
     };
     if (editingActId) {
@@ -165,15 +185,39 @@
   }
 
   // ================= 报名管理 =================
+  var LOTTERY_STATUS = { drawn: '🎉 中签', waitlist: '候补', cancelled: '未中签', registered: '已报名' };
+  var DEPOSIT_STATUS = { pending: '待缴', paid: '已缴', refunded: '已退' };
+
   async function loadRegAdmin() {
     var aid = $('regActSel').value;
     if (!aid) { $('regAdminList').innerHTML = '<div class="empty">请先创建活动</div>'; return; }
+    var { data: act, error: ae } = await sb.from('activities')
+      .select('reg_mode,capacity,deposit,deposit_deadline,lottery_done,lottery_at').eq('id', aid).maybeSingle();
+    if (ae || !act) { $('regAdminList').innerHTML = '<div class="empty">活动不存在</div>'; return; }
+
     var { data, error } = await sb.from('registrations')
-      .select('id,registered_at,residents(id,name,pin,absence_count,banned_until)')
+      .select('id,registered_at,status,deposit_status,deposit_paid_at,deposit_refunded_at,draw_order,residents(id,name,pin,absence_count,banned_until)')
       .eq('activity_id', aid).order('registered_at', { ascending: true });
     if (error) { console.error(error); return; }
     data = data || [];
-    if (!data.length) { $('regAdminList').innerHTML = '<div class="empty">暂无报名</div>'; return; }
+
+    // 顶部：抽签 / 押金控制区
+    var top = '';
+    if (act.reg_mode === 'lottery') {
+      if (!act.lottery_done) {
+        top = '<div style="background:#F1FAF5;border:1.5px solid #BFE4D6;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:14px;color:var(--ink2);line-height:1.7">' +
+          '🎲 <b>抽签模式</b> · 已报名 <b>' + data.length + '</b> 人，名额 <b>' + (act.capacity || '未设') + '</b> 人　' +
+          '<button class="btn btn-sm btn-primary" data-draw="1">开始抽签</button></div>';
+      } else {
+        var drawn = data.filter(function (r) { return r.status === 'drawn'; }).length;
+        var wait = data.filter(function (r) { return r.status === 'waitlist'; }).length;
+        top = '<div style="background:#F1FAF5;border:1.5px solid #BFE4D6;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:14px;color:var(--ink2);line-height:1.7">' +
+          '✅ <b>已抽签</b>（' + esc(fmtTime(act.lottery_at)) + '）· 中签 <b>' + drawn + '</b> 人 / 候补 <b>' + wait + '</b> 人' +
+          (act.deposit != null ? ' · 押金 ¥' + act.deposit : '') + '</div>';
+      }
+    }
+
+    if (!data.length) { $('regAdminList').innerHTML = top + '<div class="empty">暂无报名</div>'; return; }
 
     // 逐人重算缺勤/暂停状态（服务端函数，保证最新）
     var rows = await Promise.all(data.map(async function (r) {
@@ -186,16 +230,35 @@
       return { reg: r, p: p, st: st };
     }));
 
-    var html = '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>报名时间</th><th>考勤</th><th>操作</th></tr>';
+    var isLottery = act.reg_mode === 'lottery' && act.lottery_done;
+    var html = top + '<table class="admin-table"><tr><th>#</th><th>姓名</th><th>后四位</th><th>报名时间</th>';
+    if (isLottery) html += '<th>结果</th><th>押金</th>';
+    html += '<th>考勤</th><th>操作</th></tr>';
     rows.forEach(function (o, i) {
       var p = o.p, st = o.st, r = o.reg;
       var banned = st.banned_until && new Date(st.banned_until).getTime() > Date.now();
       var attn = banned
         ? '<span style="color:#C0392B;font-weight:700">⛔ 暂停至 ' + esc(fmtDateFull(st.banned_until)) + '</span>'
         : (st.absence_count > 0 ? '缺勤 ' + st.absence_count + ' 节' : '—');
+      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.registered_at)) + '</td>';
+      if (isLottery) {
+        var stxt = LOTTERY_STATUS[r.status] || r.status;
+        if (r.status === 'waitlist' && r.draw_order != null && act.capacity) stxt += ' 第 ' + (r.draw_order - act.capacity) + ' 位';
+        var dtxt = DEPOSIT_STATUS[r.deposit_status] || r.deposit_status;
+        if (r.deposit_status === 'paid' && r.deposit_paid_at) dtxt += ' ' + esc(fmtTime(r.deposit_paid_at));
+        if (r.deposit_status === 'refunded' && r.deposit_refunded_at) dtxt += ' ' + esc(fmtTime(r.deposit_refunded_at));
+        html += '<td>' + stxt + '</td><td>' + dtxt + '</td>';
+      }
       var ops = '<button class="btn btn-sm btn-line" data-leave="' + p.id + '">请假</button>';
       if (banned) ops += ' <button class="btn btn-sm btn-line" data-unban="' + p.id + '" style="color:#C0392B">解除暂停</button>';
-      html += '<tr><td>' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.pin) + '</td><td>' + esc(fmtTime(r.registered_at)) + '</td><td>' + attn + '</td><td>' + ops + '</td></tr>';
+      if (isLottery && r.status === 'drawn' && r.deposit_status === 'pending') {
+        ops += ' <button class="btn btn-sm btn-primary" data-pay="' + r.id + '">标记已缴</button>';
+        ops += ' <button class="btn btn-sm btn-line" data-promote="' + r.id + '">取消并递补</button>';
+      }
+      if (isLottery && r.status === 'drawn' && r.deposit_status === 'paid') {
+        ops += ' <button class="btn btn-sm btn-line" data-refund="' + r.id + '">标记已退</button>';
+      }
+      html += '<td>' + attn + '</td><td>' + ops + '</td></tr>';
     });
     html += '</table>';
     $('regAdminList').innerHTML = html;
@@ -203,9 +266,38 @@
 
   $('regActSel').addEventListener('change', loadRegAdmin);
 
-  // 报名名单：请假登记 / 解除暂停
+  // 报名名单：抽签 / 押金 / 请假 / 解除暂停
   $('regAdminList').addEventListener('click', async function (e) {
     var aid = $('regActSel').value;
+
+    if (e.target.getAttribute('data-draw')) {
+      if (!confirm('确定开始抽签？将随机抽取名额内的居民，抽签后不可撤销。')) return;
+      var { data: dr, error: de } = await sb.rpc('draw_lottery', { p_activity_id: aid });
+      if (de) { toast('抽签失败：' + (de.message || '请检查活动设置'), 'error'); return; }
+      toast('抽签完成：中签 ' + dr.drawn + ' 人 / 候补 ' + dr.waitlist + ' 人', 'success');
+      loadRegAdmin(); return;
+    }
+    var payId = e.target.getAttribute('data-pay');
+    if (payId) {
+      var { error: pe } = await sb.from('registrations').update({ deposit_status: 'paid', deposit_paid_at: new Date().toISOString() }).eq('id', payId);
+      if (pe) { toast('操作失败，请重试', 'error'); return; }
+      toast('已标记缴纳押金', 'success'); loadRegAdmin(); return;
+    }
+    var refundId = e.target.getAttribute('data-refund');
+    if (refundId) {
+      var { error: re } = await sb.from('registrations').update({ deposit_status: 'refunded', deposit_refunded_at: new Date().toISOString() }).eq('id', refundId);
+      if (re) { toast('操作失败，请重试', 'error'); return; }
+      toast('已标记退还押金', 'success'); loadRegAdmin(); return;
+    }
+    var promoteId = e.target.getAttribute('data-promote');
+    if (promoteId) {
+      if (!confirm('确定取消该中签者，并把名额递补给候补第一位？')) return;
+      var { data: nextId, error: proe } = await sb.rpc('promote_waitlist', { p_registration_id: promoteId });
+      if (proe) { toast('递补失败：' + (proe.message || '请重试'), 'error'); return; }
+      toast(nextId ? '已递补候补居民' : '已取消，暂无候补可递补', 'success');
+      loadRegAdmin(); return;
+    }
+
     var leaveId = e.target.getAttribute('data-leave');
     if (leaveId) {
       var reason = prompt('请填写该居民的请假理由：');

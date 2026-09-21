@@ -356,3 +356,94 @@ drop policy if exists "sl_exercises_auth_all" on public.sl_exercises;
 create policy "sl_exercises_anon_select" on public.sl_exercises for select to anon using (true);
 create policy "sl_exercises_anon_insert" on public.sl_exercises for insert to anon with check (true);
 create policy "sl_exercises_auth_all"   on public.sl_exercises for all to authenticated using (true) with check (true);
+
+-- ============================================================
+-- 活动报名抽签 + 押金管理（20260921000000_lottery_deposit.sql）
+-- ============================================================
+alter table public.activities
+  add column if not exists reg_mode text not null default 'first_come',
+  add column if not exists deposit numeric,
+  add column if not exists deposit_deadline timestamptz,
+  add column if not exists lottery_done boolean not null default false,
+  add column if not exists lottery_at timestamptz;
+
+alter table public.registrations
+  add column if not exists status text not null default 'registered',
+  add column if not exists deposit_status text not null default 'pending',
+  add column if not exists deposit_paid_at timestamptz,
+  add column if not exists deposit_refunded_at timestamptz,
+  add column if not exists draw_order int;
+
+create or replace function public.draw_lottery(p_activity_id uuid)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_cap int; v_mode text; v_drawn int; v_wait int;
+begin
+  select capacity, reg_mode into v_cap, v_mode
+    from public.activities where id = p_activity_id;
+  if v_mode is distinct from 'lottery' then
+    raise exception '本活动不是抽签模式';
+  end if;
+  if v_cap is null or v_cap <= 0 then
+    raise exception '请先设置活动名额';
+  end if;
+  if exists (select 1 from public.activities where id = p_activity_id and lottery_done) then
+    raise exception '本活动已抽过签';
+  end if;
+  update public.registrations
+    set status = 'registered', draw_order = null, deposit_status = 'pending'
+    where activity_id = p_activity_id;
+  with ranked as (
+    select id, row_number() over (order by random()) as rn
+    from public.registrations
+    where activity_id = p_activity_id
+  )
+  update public.registrations r
+    set status = case when k.rn <= v_cap then 'drawn' else 'waitlist' end,
+        draw_order = k.rn
+    from ranked k
+    where k.id = r.id;
+  update public.activities
+    set lottery_done = true, lottery_at = now()
+    where id = p_activity_id;
+  select
+    count(*) filter (where status = 'drawn'),
+    count(*) filter (where status = 'waitlist')
+    into v_drawn, v_wait
+  from public.registrations where activity_id = p_activity_id;
+  return jsonb_build_object('drawn', v_drawn, 'waitlist', v_wait);
+end $$;
+
+create or replace function public.promote_waitlist(p_registration_id uuid)
+returns uuid
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_act uuid; v_next uuid;
+begin
+  select activity_id into v_act from public.registrations where id = p_registration_id;
+  if v_act is null then raise exception '报名记录不存在'; end if;
+  update public.registrations
+    set status = 'cancelled', deposit_status = 'pending'
+    where id = p_registration_id and status = 'drawn';
+  select id into v_next
+    from public.registrations
+    where activity_id = v_act and status = 'waitlist'
+    order by draw_order asc nulls last
+    limit 1;
+  if v_next is not null then
+    update public.registrations
+      set status = 'drawn', deposit_status = 'pending'
+      where id = v_next;
+  end if;
+  return v_next;
+end $$;
+
+revoke execute on function public.draw_lottery(uuid) from public;
+revoke execute on function public.draw_lottery(uuid) from anon;
+revoke execute on function public.promote_waitlist(uuid) from public;
+revoke execute on function public.promote_waitlist(uuid) from anon;
+grant execute on function public.draw_lottery(uuid) to authenticated;
+grant execute on function public.promote_waitlist(uuid) to authenticated;

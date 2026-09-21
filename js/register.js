@@ -48,8 +48,9 @@
 
   async function open() {
     act = window.__currentActivity || null;
-    pinEl.value = '';
-    nameEl.value = '';
+    var sess = residentSession();
+    pinEl.value = sess ? (sess.pin || '') : '';
+    nameEl.value = sess ? (sess.name || '') : '';
     done = false;
     submit.textContent = '确认报名';
     showErr('');
@@ -135,6 +136,7 @@
     // 1) 识别 / 建档（报名不再采集出生年月日，由「我的」页首次登录时补填）
     var resident = await ensureResident(pin, name, null);
     if (!resident) { showErr('报名失败，请重试'); busy = false; submit.disabled = false; submit.textContent = '确认报名'; return; }
+    residentLogin(resident);
 
     // 1.5) 缺勤暂停拦截
     var ab = await absenceStatus(resident.id);

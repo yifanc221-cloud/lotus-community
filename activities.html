@@ -156,7 +156,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js?v=20260916"></script>
+<script src="js/common.js?v=20260921"></script>
 <script>
 (function(){
   function $(id){ return document.getElementById(id); }
@@ -270,7 +270,9 @@
   function openReg(act) {
     currentAct = act;
     regDone = false; regBusy = false;
-    $('regPin').value = ''; $('regName').value = '';
+    var sess = residentSession();
+    $('regPin').value = sess ? (sess.pin || '') : '';
+    $('regName').value = sess ? (sess.name || '') : '';
     $('regErr').style.display = 'none';
     $('regSubmit').textContent = '确认报名'; $('regSubmit').disabled = false;
     $('regPin').style.display = ''; $('regName').style.display = '';
@@ -320,6 +322,7 @@
 
     var resident = await ensureResident(pin, name, null);
     if (!resident) { regErr('报名失败，请重试'); regBusy = false; $('regSubmit').disabled = false; $('regSubmit').textContent = '确认报名'; return; }
+    residentLogin(resident);
 
     var ab = await absenceStatus(resident.id);
     if (ab.banned_until && new Date(ab.banned_until).getTime() > Date.now()) {

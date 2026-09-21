@@ -138,6 +138,7 @@
       $('nameInput').value = '';
       showStep('stepNew');
     } else if (list.length === 1) {
+      residentLogin(list[0]);
       doCheckin(list[0]);
     } else {
       // 多人点选
@@ -158,6 +159,7 @@
     var pin = $('pinInput').value.trim();
     var resident = await ensureResident(pin, name, null);
     if (!resident) { toast('建档失败，请重试', 'error'); return; }
+    residentLogin(resident);
     doCheckin(resident);
   }
 
@@ -181,7 +183,7 @@
     // 从缓存列表里找到对应居民（重新查更稳妥）
     findResidentsByPin($('pinInput').value.trim()).then(function (list) {
       var r = (list || []).filter(function (x) { return x.id === id; })[0];
-      if (r) doCheckin(r);
+      if (r) { residentLogin(r); doCheckin(r); }
     });
   });
 
@@ -202,6 +204,7 @@
     if (list === null) { toast('网络异常，请重试', 'error'); return; }
     var resident = (list || []).filter(function (r) { return r.name === name; })[0];
     if (!resident) { $('leaveResult').textContent = '未找到您的报名记录，请确认后四位与姓名。'; return; }
+    residentLogin(resident);
 
     // 是否报名本场活动
     var { data: reg } = await sb.from('registrations').select('id').eq('activity_id', currentActivity.id).eq('resident_id', resident.id).maybeSingle();
@@ -223,4 +226,8 @@
 
   // 初始化
   loadActivity();
+
+  // 已登录（sessionStorage）自动带入后四位，无需重复输入
+  var sess = residentSession();
+  if (sess) { $('pinInput').value = sess.pin || ''; }
 })();

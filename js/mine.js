@@ -61,6 +61,7 @@
         return;
       }
       me = data;
+      residentLogin(data);
       if (data.birth_date) {
         setMe(data);
       } else {
@@ -181,6 +182,7 @@
   $('mName').addEventListener('keydown', function (e) { if (e.key === 'Enter') identify(); });
   $('mName').addEventListener('blur', function () { if ($('mName').value.trim()) identify(); });
   $('switchBtn').addEventListener('click', function () {
+    residentLogout();
     me = null;
     pendingBirth = false;
     $('mPin').value = '';
@@ -193,4 +195,8 @@
   });
 
   birthInit();
+
+  // 已登录（sessionStorage）则自动进入，无需重复识别
+  var s = residentSession();
+  if (s) { me = s; setMe(s); }
 })();

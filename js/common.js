@@ -83,6 +83,60 @@ async function ensureResident(pin, name, birthDate) {
   return data;
 }
 
+// ============================================================
+// 站点级居民身份会话（sessionStorage，全站共用；关标签页即失效）
+// ============================================================
+var RESIDENT_KEY = 'lotus_resident_v1';
+
+// 读取当前已登录居民 { id, name, pin, birth_date }，无则 null
+function residentSession() {
+  try {
+    var raw = sessionStorage.getItem(RESIDENT_KEY);
+    if (!raw) return null;
+    var r = JSON.parse(raw);
+    if (r && r.id && r.name) return r;
+    return null;
+  } catch (e) { return null; }
+}
+
+// 登录/更新会话：merge 保留已存的 birth_date（部分识别路径不返回出生日期）
+function residentLogin(r) {
+  if (!r || !r.id) return;
+  var cur = residentSession() || {};
+  try {
+    sessionStorage.setItem(RESIDENT_KEY, JSON.stringify({
+      id: r.id,
+      name: r.name || cur.name || '',
+      pin: r.pin || cur.pin || '',
+      birth_date: r.birth_date || cur.birth_date || null
+    }));
+  } catch (e) {}
+  residentBadgeInit();
+}
+
+// 退出登录
+function residentLogout() {
+  try { sessionStorage.removeItem(RESIDENT_KEY); } catch (e) {}
+}
+
+// 顶部「👤 姓名 · 退出」徽标（跳过工作人员后台）
+function residentBadgeInit() {
+  if (document.getElementById('adminBar')) return;   // admin.html
+  var r = residentSession();
+  if (!r) return;
+  var host = document.querySelector('.topbar .orgtag') || document.querySelector('.topbar');
+  if (!host || document.getElementById('residentBadge')) return;
+  var chip = document.createElement('span');
+  chip.id = 'residentBadge';
+  chip.style.cssText = 'margin-left:12px;font-size:13px;font-weight:700;color:#0F6E56;white-space:nowrap;display:inline-block;';
+  chip.innerHTML = '👤 ' + esc(r.name) + ' <a href="javascript:void(0)" style="color:#D85A30;text-decoration:none">退出</a>';
+  chip.querySelector('a').addEventListener('click', function () {
+    residentLogout();
+    location.reload();
+  });
+  host.appendChild(chip);
+}
+
 // 缺勤/暂停状态：调用服务端重算函数，返回 { absence_count, banned_until }
 async function absenceStatus(residentId) {
   const sb = getSupabase();
@@ -209,3 +263,10 @@ function speak(text) {
 
 // 初始化语音引擎
 ttsInit();
+
+// 初始化站点级居民登录徽标
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', residentBadgeInit);
+} else {
+  residentBadgeInit();
+}

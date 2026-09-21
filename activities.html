@@ -62,6 +62,20 @@
 .vbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:12px 14px;border:1.5px solid var(--coral-l);border-radius:14px;background:var(--coral-x);color:var(--coral);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
 .vbtn:active{transform:translateY(1px)}
 .vbtn .vico{font-size:19px}
+
+/* ===== 安心生活入口 ===== */
+.anxin-entry{
+  display:flex;align-items:center;gap:14px;margin-top:16px;padding:16px 18px;
+  background:linear-gradient(160deg,#FFF4EC,#FFFDF9 55%,#F1FAF5);
+  border:2px solid #F3C6B2;border-radius:20px;text-decoration:none;
+  box-shadow:0 3px 14px rgba(216,90,48,.10);color:var(--ink);
+}
+.anxin-entry:active{transform:translateY(1px)}
+.anxin-entry .anxin-ico{font-size:34px;line-height:1;flex:0 0 40px;text-align:center}
+.anxin-entry .anxin-bd{min-width:0;flex:1}
+.anxin-entry .anxin-t{display:block;font-size:21px;font-weight:800;color:var(--ink)}
+.anxin-entry .anxin-d{display:block;font-size:14.5px;color:var(--ink2);margin-top:3px}
+.anxin-entry .anxin-ar{font-size:26px;color:var(--coral);font-weight:800;flex:0 0 auto}
 </style>
 </head>
 <body class="has-nav">
@@ -86,6 +100,16 @@
 </header>
 
 <main class="wrap" style="max-width:640px">
+  <!-- ============ 安心生活入口 ============ -->
+  <a class="anxin-entry" href="safe-life.html" aria-label="进入安心生活专区">
+    <span class="anxin-ico">🛡️</span>
+    <span class="anxin-bd">
+      <span class="anxin-t">安心生活</span>
+      <span class="anxin-d">防诈骗提醒｜脑力训练｜健康运动</span>
+    </span>
+    <span class="anxin-ar">›</span>
+  </a>
+
   <div class="section-title" style="margin-top:16px">近期活动 · 点开查看详情</div>
   <div id="actList"><div class="empty">加载中…</div></div>
 </main>

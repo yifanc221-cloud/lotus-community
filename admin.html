@@ -6,6 +6,17 @@
 <meta name="theme-color" content="#0F6E56">
 <title>莲花社区服务点 · 工作人员后台</title>
 <link rel="stylesheet" href="css/style.css?v=20260916">
+<style>
+  /* 安心生活·长者记录一览：明细折叠列表 */
+  .sl-sec { margin: 8px 0 2px; font-weight: 600; }
+  .sl-detail summary { cursor: pointer; color: var(--teal); font-size: 13px; user-select: none; list-style: none; }
+  .sl-detail summary::-webkit-details-marker { display: none; }
+  .sl-detail summary::before { content: '▸ '; }
+  .sl-detail[open] summary::before { content: '▾ '; }
+  .sl-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0 3px 10px; border-left: 2px solid var(--line); margin: 4px 0; font-size: 13.5px; }
+  .sl-t { color: var(--ink3); font-size: 12px; white-space: nowrap; }
+  .sl-empty { font-size: 13.5px; color: var(--ink3); }
+</style>
 </head>
 <body>
 
@@ -241,8 +252,8 @@
     <!-- 安心生活 -->
     <section class="panel" id="pSafeLife">
       <div class="card">
-        <div class="card-hd"><span class="dot"></span><h2>安心生活 · 长者记录一览</h2></div>
-        <p class="hint">汇总查看长者的防诈骗阅读、脑力训练、运动记录与求助跟进状态。</p>
+        <div class="card-hd"><span class="dot"></span><h2>安心生活 · 长者记录一览</h2><button class="btn btn-line" id="archSafeLife" style="margin-left:auto;padding:6px 14px;font-size:13px">导出明细</button></div>
+        <p class="hint">逐条查看长者的安心知识阅读、脑力训练、运动记录与求助跟进状态；导出明细含四张表。</p>
       </div>
       <div id="slList" class="mt8"></div>
     </section>
@@ -302,6 +313,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/common.js?v=20260923"></script>
-<script src="js/admin.js?v=20260923"></script>
+<script src="js/admin.js?v=20260924"></script>
 </body>
 </html>

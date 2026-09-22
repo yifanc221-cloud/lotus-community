@@ -818,6 +818,7 @@
   $('archRegs').addEventListener('click', archRegs);
   $('archActs').addEventListener('click', archActs);
   $('archPhotos').addEventListener('click', archPhotos);
+  $('archSafeLife').addEventListener('click', archSafeLife);
 
   // ================= 工具 =================
   function downloadBlob(buf, filename) {
@@ -876,10 +877,16 @@
   }
 
   // ================= 安心生活（工作人员查看） =================
-  var SL_SECTION = { reminder: '今日提醒', cases: '常见案例', quiz: '小测试' };
+  var SL_SECTION = { reminder: '今日提醒', cases: '常见案例', quiz: '安心知识问答' };
   var SL_TYPE = { memory: '记忆力', attention: '注意力', life: '生活能力' };
   var SL_HELP = { family: '联系家属', staff: '联系工作人员', police: '拨打96110/110' };
   var SL_STATUS = ['待跟进', '跟进中', '已完成'];
+  var SL_QUIZ_SET = {
+    fraud_impersonate: '冒充亲友·公检法', fraud_invest: '投资理财骗局',
+    fraud_shopping: '网购·快递退款', fraud_health: '保健品·养老推销',
+    home_safety: '居家安全', med_safety: '用药安全',
+    travel_safety: '出行安全', fire_safety: '消防安全'
+  };
 
   function slStatusSelect(h) {
     return '<select class="select" data-help="' + h.id + '" style="padding:6px 8px;font-size:13px;width:auto">' +
@@ -892,7 +899,7 @@
     var box = $('slList');
     box.innerHTML = '<div class="empty">加载中…</div>';
     var [reads, trains, exes, helps, residents] = await Promise.all([
-      sb.from('sl_reads').select('resident_id,section,created_at').order('created_at', { ascending: false }),
+      sb.from('sl_reads').select('resident_id,section,quiz_set,created_at').order('created_at', { ascending: false }),
       sb.from('sl_trainings').select('resident_id,train_type,difficulty,correct,total,duration_seconds,created_at').order('created_at', { ascending: false }),
       sb.from('sl_exercises').select('resident_id,ex_type,ex_date,duration_minutes,steps,feeling,created_at').order('ex_date', { ascending: false }),
       sb.from('sl_help_requests').select('resident_id,help_type,note,status,created_at').order('created_at', { ascending: false }),
@@ -920,28 +927,39 @@
     box.innerHTML = list.map(function (res) {
       var d = g[res.id];
 
-      // 防诈骗阅读
-      var seen = {};
-      var readTxt = d.reads.map(function (r) { return SL_SECTION[r.section]; })
-        .filter(function (s) { if (!s || seen[s]) return false; seen[s] = 1; return true; }).join('、') || '—';
-
-      // 脑力训练
-      var trainTxt = '—';
-      if (d.trains.length) {
-        var t0 = d.trains[0];
-        trainTxt = d.trains.length + ' 次 · 最近 ' + (SL_TYPE[t0.train_type] || t0.train_type) +
-          ' ' + t0.correct + '/' + t0.total + '（' + fmtDate(t0.created_at) + '）';
+      function detailRows(rows, render) {
+        return '<details class="sl-detail"><summary>共 ' + rows.length + ' 条 · 展开明细</summary>' +
+          rows.map(render).join('') + '</details>';
       }
 
-      // 运动记录
-      var exTxt = '—';
-      if (d.exes.length) {
-        var e0 = d.exes[0];
-        exTxt = d.exes.length + ' 次 · 最近 ' + e0.ex_type + ' ' + fmtDate(e0.ex_date) +
-          ' ' + e0.duration_minutes + '分钟' + (e0.feeling ? ' · ' + e0.feeling : '');
-      }
+      // 安心知识阅读（逐条）
+      var readHtml = d.reads.length
+        ? detailRows(d.reads, function (r) {
+            var lbl = SL_SECTION[r.section] || r.section;
+            if (r.section === 'quiz' && r.quiz_set) lbl += ' · ' + (SL_QUIZ_SET[r.quiz_set] || r.quiz_set);
+            return '<div class="sl-row"><span>🛡️ ' + esc(lbl) + '</span><span class="sl-t">' + fmtTime(r.created_at) + '</span></div>';
+          })
+        : '<div class="sl-empty">—</div>';
 
-      // 求助记录
+      // 脑力训练（逐条）
+      var trainHtml = d.trains.length
+        ? detailRows(d.trains, function (t) {
+            return '<div class="sl-row"><span>🧠 ' + (SL_TYPE[t.train_type] || t.train_type) +
+              ' · ' + t.difficulty + ' · ' + t.correct + '/' + t.total + ' 题</span>' +
+              '<span class="sl-t">' + fmtTime(t.created_at) + '</span></div>';
+          })
+        : '<div class="sl-empty">—</div>';
+
+      // 运动记录（逐条）
+      var exHtml = d.exes.length
+        ? detailRows(d.exes, function (e) {
+            return '<div class="sl-row"><span>🏃 ' + esc(e.ex_type) + ' · ' + fmtDate(e.ex_date) +
+              ' · ' + e.duration_minutes + '分钟' + (e.feeling ? ' · ' + esc(e.feeling) : '') + '</span>' +
+              '<span class="sl-t">' + fmtTime(e.created_at) + '</span></div>';
+          })
+        : '<div class="sl-empty">—</div>';
+
+      // 求助记录（逐条，含状态跟进）
       var helpHtml = d.helps.length
         ? d.helps.map(function (h) {
             return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line)">' +
@@ -957,13 +975,77 @@
           '<span class="tag tag-gray">后四位 ' + esc(res.pin) + '</span>' +
         '</div>' +
         '<div style="font-size:14px;color:var(--ink2);line-height:1.6">' +
-          '<div>🛡️ 防诈骗阅读：' + esc(readTxt) + '</div>' +
-          '<div>🧠 脑力训练：' + esc(trainTxt) + '</div>' +
-          '<div>🏃 运动记录：' + esc(exTxt) + '</div>' +
+          '<div class="sl-sec">🛡️ 安心知识阅读</div>' + readHtml +
+          '<div class="sl-sec">🧠 脑力训练</div>' + trainHtml +
+          '<div class="sl-sec">🏃 运动记录</div>' + exHtml +
         '</div>' +
-        '<div style="margin-top:4px;font-size:14px;color:var(--ink2)">📣 求助跟进：</div>' + helpHtml +
+        '<div style="margin-top:10px;font-size:14px;color:var(--ink2)">📣 求助跟进</div>' + helpHtml +
       '</div>';
     }).join('');
+  }
+
+  // 安心生活训练明细导出（答题阅读 / 脑力训练 / 运动记录 / 求助跟进 四张表）
+  async function archSafeLife() {
+    if (!window.ExcelJS) { toast('Excel 组件未加载，请刷新后重试', 'error'); return; }
+    toast('正在生成安心生活明细，请稍候…');
+
+    var [reads, trains, exes, helps] = await Promise.all([
+      sb.from('sl_reads').select('section,quiz_set,created_at,residents(name,pin)').order('created_at', { ascending: true }),
+      sb.from('sl_trainings').select('train_type,difficulty,correct,total,duration_seconds,created_at,residents(name,pin)').order('created_at', { ascending: true }),
+      sb.from('sl_exercises').select('ex_type,ex_date,duration_minutes,steps,feeling,created_at,residents(name,pin)').order('created_at', { ascending: true }),
+      sb.from('sl_help_requests').select('help_type,note,status,created_at,residents(name,pin)').order('created_at', { ascending: true })
+    ]);
+    reads = reads.data || []; trains = trains.data || []; exes = exes.data || []; helps = helps.data || [];
+    if (!reads.length && !trains.length && !exes.length && !helps.length) {
+      toast('暂无安心生活训练记录', 'error'); return;
+    }
+
+    var wb = new ExcelJS.Workbook();
+    function addSheet(name, header, rows, widths) {
+      var ws = wb.addWorksheet(name);
+      var hr = ws.addRow(header);
+      hr.font = { bold: true };
+      hr.eachCell(function (c) {
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0EDE5' } };
+        c.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+      rows.forEach(function (r) { ws.addRow(r); });
+      widths.forEach(function (w, i) { ws.getColumn(i + 1).width = w; });
+    }
+    function nm(x) { return (x && x.name) || '—'; }
+    function pin(x) { return (x && x.pin) || '—'; }
+
+    addSheet('答题阅读', ['姓名', '后四位', '板块', '套题', '时间'],
+      reads.map(function (r) {
+        return [nm(r.residents), pin(r.residents), SL_SECTION[r.section] || r.section,
+          r.quiz_set ? (SL_QUIZ_SET[r.quiz_set] || r.quiz_set) : '—', fmtTime(r.created_at)];
+      }),
+      [12, 10, 14, 20, 20]);
+
+    addSheet('脑力训练', ['姓名', '后四位', '类型', '难度', '答对', '总题', '用时(秒)', '时间'],
+      trains.map(function (t) {
+        return [nm(t.residents), pin(t.residents), SL_TYPE[t.train_type] || t.train_type,
+          t.difficulty, t.correct, t.total, t.duration_seconds, fmtTime(t.created_at)];
+      }),
+      [12, 10, 12, 12, 8, 8, 10, 20]);
+
+    addSheet('运动记录', ['姓名', '后四位', '类型', '日期', '时长(分钟)', '步数', '感受', '记录时间'],
+      exes.map(function (e) {
+        return [nm(e.residents), pin(e.residents), e.ex_type, e.ex_date,
+          e.duration_minutes, (e.steps == null ? '—' : e.steps), e.feeling, fmtTime(e.created_at)];
+      }),
+      [12, 10, 12, 14, 12, 8, 10, 20]);
+
+    addSheet('求助跟进', ['姓名', '后四位', '求助类型', '备注', '状态', '时间'],
+      helps.map(function (h) {
+        return [nm(h.residents), pin(h.residents), SL_HELP[h.help_type] || h.help_type,
+          h.note || '', h.status, fmtTime(h.created_at)];
+      }),
+      [12, 10, 16, 24, 10, 20]);
+
+    var buf = await wb.xlsx.writeBuffer();
+    downloadBlob(buf, '安心生活训练明细_' + todayStr() + '.xlsx');
+    toast('安心生活明细已导出', 'success');
   }
 
   $('slList').addEventListener('change', async function (e) {

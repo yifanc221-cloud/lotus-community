@@ -148,23 +148,39 @@ async function absenceStatus(residentId) {
 }
 
 // ============================================================
-// 居民总积分 = 签到 + 安心生活训练完成（每完成一整套记 1 分，可重复累计）
-//   签到         checkins      每场活动 1 分
-//   防诈骗小测试  sl_reads(section='quiz')  完成一次 1 分
-//   脑力训练      sl_trainings   练完一轮 1 分
-//   健康运动      sl_exercises   记录一次 1 分
+// 居民总积分 = 签到 + 安心生活训练完成
+//   签到         checkins      每场活动 1 分（不封顶）
+//   安心生活训练  每「套/类」最多记 2 分（做满 2 次后不再加分）
+//     答题套题    sl_reads(section='quiz')  按 quiz_set 分组
+//     脑力训练    sl_trainings              按 train_type 分组
+//     健康运动    sl_exercises              按 ex_type 分组
 // ============================================================
 async function getResidentPoints(residentId) {
   var sb = getSupabase();
   if (!sb || !residentId) return 0;
-  var opts = { count: 'exact', head: true };
+
+  // 每组最多记 2 分（keyFn 提取分组键）
+  function capped(rows, keyFn) {
+    var m = {};
+    (rows || []).forEach(function (r) {
+      var k = keyFn(r) || '';
+      m[k] = (m[k] || 0) + 1;
+    });
+    var total = 0;
+    Object.keys(m).forEach(function (k) { total += Math.min(m[k], 2); });
+    return total;
+  }
+
   var res = await Promise.all([
-    sb.from('checkins').select('*', opts).eq('resident_id', residentId),
-    sb.from('sl_reads').select('*', opts).eq('resident_id', residentId).eq('section', 'quiz'),
-    sb.from('sl_trainings').select('*', opts).eq('resident_id', residentId),
-    sb.from('sl_exercises').select('*', opts).eq('resident_id', residentId)
+    sb.from('checkins').select('*', { count: 'exact', head: true }).eq('resident_id', residentId),
+    sb.from('sl_reads').select('quiz_set').eq('resident_id', residentId).eq('section', 'quiz'),
+    sb.from('sl_trainings').select('train_type').eq('resident_id', residentId),
+    sb.from('sl_exercises').select('ex_type').eq('resident_id', residentId)
   ]);
-  return (res[0].count || 0) + (res[1].count || 0) + (res[2].count || 0) + (res[3].count || 0);
+  return (res[0].count || 0)
+    + capped(res[1].data, function (r) { return r.quiz_set; })
+    + capped(res[2].data, function (r) { return r.train_type; })
+    + capped(res[3].data, function (r) { return r.ex_type; });
 }
 
 // 获取当前登录工作人员（无则 null）

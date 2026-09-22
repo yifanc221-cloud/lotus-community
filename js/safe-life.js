@@ -7,14 +7,32 @@
   window.slSetResident = function (r) { if (window.residentLogin) window.residentLogin(r); };
   window.slClearResident = function () { if (window.residentLogout) window.residentLogout(); };
 
-  // 记录一次「防诈骗」阅读（供工作人员后台查看阅读情况），失败静默
-  window.slRecordRead = async function (section) {
+  // 记录一次阅读 / 答题完成（供工作人员后台查看），失败静默
+  // section: 'reminder' | 'cases' | 'quiz'；set: 套题 id（section='quiz' 时必填）
+  window.slRecordRead = async function (section, set) {
     var r = window.slResident();
     if (!r) return;
     var sb = getSupabase();
     if (!sb) return;
-    var { error } = await sb.from('sl_reads').insert({ resident_id: r.id, section: section });
+    var row = { resident_id: r.id, section: section };
+    if (set) row.quiz_set = set;
+    var { error } = await sb.from('sl_reads').insert(row);
     if (error) console.error(error);
+  };
+
+  // 某居民某「套/类」的完成次数（用于封顶：每套/每类最多记 2 分）
+  // table: 'sl_reads' | 'sl_trainings' | 'sl_exercises'
+  // keyCol: 分组字段，如 'quiz_set' / 'train_type' / 'ex_type'；keyVal: 其值
+  window.slSetCount = async function (table, keyCol, keyVal) {
+    var r = window.slResident();
+    if (!r) return 0;
+    var sb = getSupabase();
+    if (!sb) return 0;
+    var q = sb.from(table).select('*', { count: 'exact', head: true }).eq('resident_id', r.id);
+    if (keyCol && keyVal != null) q = q.eq(keyCol, keyVal);
+    var { count, error } = await q;
+    if (error) { console.error(error); return 0; }
+    return count || 0;
   };
 
   // 完成一项训练后提示 +1 积分（完成记录已入库，积分由 common.js getResidentPoints 统一累计）

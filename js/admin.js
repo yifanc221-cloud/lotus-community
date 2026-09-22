@@ -690,15 +690,28 @@
   async function archResidents() {
     var { data } = await sb.from('residents').select('id,pin,name,birth_date,created_at').order('created_at', { ascending: true });
     var { data: chk } = await sb.from('checkins').select('resident_id');
-    var { data: quiz } = await sb.from('sl_reads').select('resident_id').eq('section', 'quiz');
-    var { data: trn } = await sb.from('sl_trainings').select('resident_id');
-    var { data: ex } = await sb.from('sl_exercises').select('resident_id');
+    var { data: quiz } = await sb.from('sl_reads').select('resident_id,quiz_set').eq('section', 'quiz');
+    var { data: trn } = await sb.from('sl_trainings').select('resident_id,train_type');
+    var { data: ex } = await sb.from('sl_exercises').select('resident_id,ex_type');
     var { data: reg } = await sb.from('registrations').select('resident_id');
     var ptsCount = {}, regCount = {};
+    // 签到：每场活动 1 分，不封顶
     (chk || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
-    (quiz || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
-    (trn || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
-    (ex || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
+    // 安心生活训练：每「套/类」最多记 2 分
+    function capAdd(rows, keyFn) {
+      var m = {};
+      (rows || []).forEach(function (c) {
+        var k = c.resident_id + '|' + (keyFn(c) || '');
+        m[k] = (m[k] || 0) + 1;
+      });
+      Object.keys(m).forEach(function (k) {
+        var rid = k.split('|')[0];
+        ptsCount[rid] = (ptsCount[rid] || 0) + Math.min(m[k], 2);
+      });
+    }
+    capAdd(quiz, function (c) { return c.quiz_set; });
+    capAdd(trn, function (c) { return c.train_type; });
+    capAdd(ex, function (c) { return c.ex_type; });
     (reg || []).forEach(function (r) { regCount[r.resident_id] = (regCount[r.resident_id] || 0) + 1; });
     var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '建档时间', '累计积分', '累计报名次数']];
     (data || []).forEach(function (r) {

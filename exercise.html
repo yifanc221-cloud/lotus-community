@@ -109,8 +109,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js?v=20260922"></script>
-<script src="js/safe-life.js?v=20260922"></script>
+<script src="js/common.js?v=20260923"></script>
+<script src="js/safe-life.js?v=20260923"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -256,7 +256,10 @@
     $('exWarn').style.display = (selFeel === '不舒服') ? 'block' : 'none';
     $('exSuccess').style.display = 'block';
     $('exSuccess').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    slAwardPoints('记录运动');
+    // 每类运动最多记 2 分，第 3 次起不再加分
+    var cnt = await slSetCount('sl_exercises', 'ex_type', selType);
+    if (cnt <= 2) slAwardPoints('记录运动');
+    else toast('这类运动已计满 2 分，不再加分，谢谢坚持锻炼！');
     loadAll();
   });
 

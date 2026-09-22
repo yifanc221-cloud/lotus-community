@@ -7,6 +7,21 @@
 <title>莲花社区服务点 · 防诈骗</title>
 <link rel="stylesheet" href="css/style.css?v=20260917">
 <link rel="stylesheet" href="css/safe-life.css?v=20260917">
+<style>
+.quiz-set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quiz-set {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
+  border: 2px solid var(--line); border-radius: 14px; background: #fff; padding: 12px;
+  font-family: inherit; cursor: pointer;
+}
+.quiz-set:active { transform: translateY(1px); }
+.quiz-set .ic { font-size: 26px; line-height: 1; }
+.quiz-set .t { font-size: 15px; font-weight: 800; color: var(--ink); }
+.quiz-set .d { font-size: 12px; color: var(--ink2); line-height: 1.4; }
+.quiz-set .badge { font-size: 12px; font-weight: 800; color: var(--teal); }
+.quiz-set .badge.full { background: var(--teal); color: #fff; border-radius: 999px; padding: 2px 9px; }
+.quiz-set.full { border-color: var(--teal); background: var(--teal-x); }
+</style>
 </head>
 <body class="sl-body">
 
@@ -35,7 +50,7 @@
   <nav class="af-menu" aria-label="防诈骗板块">
     <a class="af-entry" href="#secReminder"><span class="ic">📢</span><span class="bd"><span class="t">今日诈骗提醒</span><span class="d">每天一句，记住就不上当</span></span><span class="ar">›</span></a>
     <a class="af-entry" href="#secCases"><span class="ic">📚</span><span class="bd"><span class="t">常见诈骗案例</span><span class="d">看清骗子怎么说、怎么防</span></span><span class="ar">›</span></a>
-    <a class="af-entry" href="#secQuiz"><span class="ic">✏️</span><span class="bd"><span class="t">防诈骗小测试</span><span class="d">做几道题，考考自己</span></span><span class="ar">›</span></a>
+    <a class="af-entry" href="#secQuiz"><span class="ic">✏️</span><span class="bd"><span class="t">安心知识问答</span><span class="d">多套题，做题得积分</span></span><span class="ar">›</span></a>
     <a class="af-entry" href="#secHelp"><span class="ic">🆘</span><span class="bd"><span class="t">遇到可疑情况怎么办</span><span class="d">这里可以求助</span></span><span class="ar">›</span></a>
   </nav>
 
@@ -61,12 +76,12 @@
     <div id="caseList"></div>
   </section>
 
-  <!-- 小测试 -->
+  <!-- 安心知识问答 -->
   <section class="card" id="secQuiz">
-    <div class="card-hd"><span class="dot"></span><h2>防诈骗小测试</h2></div>
+    <div class="card-hd"><span class="dot"></span><h2>安心知识问答</h2></div>
     <div id="quizBox">
-      <p class="hint">一次做一道题，选完马上告诉您对不对。做做题，印象更深。</p>
-      <button id="quizStart" class="btn btn-teal btn-block btn-lg mt14">开始答题</button>
+      <p class="hint">选一套题来做。每套做满 <b>2 次</b>可得 2 分，再多做不加分。</p>
+      <div id="quizSets" class="quiz-set-grid"></div>
     </div>
   </section>
 
@@ -87,8 +102,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js?v=20260922"></script>
-<script src="js/safe-life.js?v=20260922"></script>
+<script src="js/common.js?v=20260923"></script>
+<script src="js/safe-life.js?v=20260923"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -131,24 +146,137 @@
     slRecordRead('cases');
   });
 
-  // ============ 小测试 ============
-  var QUIZ = [
-    { q: '接到电话说「您的孩子出事了，急需转账」，应该怎么办？', opts: ['马上转账救急', '先挂断，用熟悉的号码回拨核实', '按对方说的做', '把验证码告诉他'], a: 1, why: '骗子常冒充亲友出事骗钱，先核实再决定。' },
-    { q: '陌生人让您把银行卡验证码发给他，正确做法是？', opts: ['发给他', '验证码谁也不能给', '告诉他卡号就行', '帮他转账'], a: 1, why: '验证码就是钱袋子的钥匙，谁也不能给。' },
-    { q: '「公检法」来电说您涉嫌犯罪，要转「安全账户」，该？', opts: ['立即转账', '挂断并拨打 110 核实', '按对方指引操作', '说出银行卡密码'], a: 1, why: '公检法不会电话办案、更不会让您转账。' },
-    { q: '收到「快递丢了，双倍退款」的链接，该？', opts: ['点开链接填信息', '私下扫码退款', '不点链接，联系正规客服核实', '把验证码告诉对方'], a: 2, why: '退款走官方渠道，陌生链接别乱点。' },
-    { q: '网上有人说「稳赚不赔、高回报」，该？', opts: ['先投一点试试', '赶紧加大投入', '相信「老师」跟着买', '不信，高收益必高风险'], a: 3, why: '天上不会掉馅饼，「稳赚不赔」都是骗局。' },
-    { q: '有人说「包治百病」的保健品，该？', opts: ['立刻购买', '认准正规药店和医生，不听夸大宣传', '买三送一很划算，多买', '借钱也要买'], a: 1, why: '买药认准正规渠道，别信夸大宣传。' },
-    { q: '陌生电话让您「共享屏幕」帮他操作，该？', opts: ['按他说的共享', '打开共享帮他', '拒绝，绝不给陌生人共享屏幕', '先试一下'], a: 2, why: '共享屏幕会把您的卡号和密码都露给对方。' },
-    { q: '遇到拿不准是不是骗局的情况，最好？', opts: ['自己先转账试试', '问子女、联系工作人员，或打 96110', '谁也不说', '听对方的'], a: 1, why: '拿不准就求助，别一个人做决定。' }
+  // ============ 安心知识问答（多套题，每套最多记 2 分） ============
+  var QUIZ_SETS = [
+    {
+      id: 'fraud_impersonate', ic: '👮', t: '冒充亲友·公检法', d: '识破「出事要钱」「安全账户」',
+      qs: [
+        { q: '接到电话说「您的孩子出事了，急需转账」，应该怎么办？', opts: ['马上转账救急', '先挂断，用熟悉的号码回拨核实', '按对方说的做', '把验证码告诉他'], a: 1, why: '骗子常冒充亲友出事骗钱，先核实再决定。' },
+        { q: '「公检法」来电说您涉嫌犯罪，要转「安全账户」，该？', opts: ['立即转账', '挂断并拨打 110 核实', '按对方指引操作', '说出银行卡密码'], a: 1, why: '公检法不会电话办案、更不会让您转账。' },
+        { q: '对方自称警察，让您别挂电话、别告诉家人，该？', opts: ['照做，不告诉家人', '一直听他指挥', '立即挂断，联系家人核实', '把存款取出来给他'], a: 2, why: '真警察不会阻止您和家里商量，多半是骗子。' },
+        { q: '陌生人让您把银行卡验证码发给他，正确做法是？', opts: ['发给他', '验证码谁也不能给', '告诉他卡号就行', '帮他转账'], a: 1, why: '验证码就是钱袋子的钥匙，谁也不能给。' },
+        { q: '电话里说「我是你孙子，撞了人要赔钱，快转过来」，该？', opts: ['马上转账救急', '先核实是不是本人再决定', '把钱转给指定账号', '把密码告诉他'], a: 1, why: '先确认是不是本人，别急着转钱。' },
+        { q: '陌生电话让您「共享屏幕」帮他操作，该？', opts: ['按他说的共享', '打开共享帮他', '拒绝，绝不给陌生人共享屏幕', '先试一下'], a: 2, why: '共享屏幕会把您的卡号和密码都露给对方。' }
+      ]
+    },
+    {
+      id: 'fraud_invest', ic: '📈', t: '投资理财骗局', d: '识破「稳赚不赔」「高回报」',
+      qs: [
+        { q: '网上有人说「稳赚不赔、高回报」的投资，该？', opts: ['先投一点试试', '赶紧加大投入', '相信「老师」跟着买', '不信，高收益必高风险'], a: 3, why: '天上不会掉馅饼，「稳赚不赔」都是骗局。' },
+        { q: '「先小额试投，赚了再加大」的理财群，该？', opts: ['先试投赚一点', '警惕，这可能是骗局的开始', '把养老钱都投进去', '跟着群友一起投'], a: 1, why: '先让您小赚一笔、再骗您大钱，是常见套路。' },
+        { q: '陌生「理财老师」让您下载陌生APP充值，该？', opts: ['照他说的下载充值', '不下载，先咨询子女或正规机构', '把卡号和密码给他代操作', '借钱充值'], a: 1, why: '陌生APP别乱装，投资前先和家人、正规机构商量。' },
+        { q: '有人承诺「保本保息、年收益 30%」，该？', opts: ['很心动，赶紧投', '不投，正规理财不会承诺稳赚', '先投一点看看', '把房子卖了去投'], a: 1, why: '收益越高风险越大，承诺保本高息多是骗局。' },
+        { q: '投资理财前最稳妥的做法是？', opts: ['跟着网友买', '和家人商量，咨询正规金融机构', '听陌生电话推荐', '把钱转给陌生人代炒'], a: 1, why: '大额投资一定要和家人商量、找正规渠道。' },
+        { q: '群里很多人说「跟着老师赚翻了」，该？', opts: ['赶紧跟着买', '群里很多是托，别信', '问问老师怎么操作', '把钱投进去'], a: 1, why: '群里晒的收益图多是假的，别当真。' }
+      ]
+    },
+    {
+      id: 'fraud_shopping', ic: '📦', t: '网购·快递退款', d: '识破「双倍退款」套路',
+      qs: [
+        { q: '收到「快递丢了，双倍退款」的链接，该？', opts: ['点开链接填信息', '私下扫码退款', '不点链接，联系正规客服核实', '把验证码告诉对方'], a: 2, why: '退款走官方渠道，陌生链接别乱点。' },
+        { q: '客服说退款要「扫码输入银行卡和验证码」，该？', opts: ['照做，能退款就行', '拒绝，退款不需要验证码', '把卡号发给他', '把验证码念给他'], a: 1, why: '要验证码和银行卡的「退款」都是骗局。' },
+        { q: '网购要退款，最安全的做法是？', opts: ['点短信里的链接', '在官方APP或平台内操作', '加对方微信私下退', '扫对方发的二维码'], a: 1, why: '退款一定要在官方平台内操作。' },
+        { q: '收到中奖短信，让「先交手续费才能领奖」，该？', opts: ['马上交手续费', '不交，中奖不会先要钱', '把银行卡发过去', '按提示操作'], a: 1, why: '真中奖不会先让您交钱，这是骗局。' },
+        { q: '陌生链接点开后让您填银行卡信息，该？', opts: ['马上填，领优惠', '立刻关闭，别填', '把信息填完整', '问问客服再填'], a: 1, why: '陌生链接别乱填银行卡信息，容易被盗刷。' },
+        { q: '「限时秒杀、今天不买明天涨价」的推销，该？', opts: ['赶紧下单', '别冲动，先想清楚再决定', '借钱也要买', '把卡号发给对方'], a: 1, why: '制造紧张催您下单，多为套路，别冲动。' }
+      ]
+    },
+    {
+      id: 'fraud_health', ic: '💰', t: '保健品·养老推销', d: '识破「包治百病」骗局',
+      qs: [
+        { q: '有人说「包治百病」的保健品，该？', opts: ['立刻购买', '认准正规药店和医生，不信夸大宣传', '买三送一很划算，多买', '借钱也要买'], a: 1, why: '买药认准正规渠道，别信夸大宣传。' },
+        { q: '免费领鸡蛋、听讲座还送礼品，最后推销高价保健品，该？', opts: ['有礼品就拿，多听几次', '警惕，这可能是推销套路', '先买一点试试', '把养老钱拿出来买'], a: 1, why: '小恩小惠拉近关系、再高价卖货，是常见套路。' },
+        { q: '「祖传秘方、专治糖尿病」的偏方，该？', opts: ['买来试试', '别信，治病要找正规医生', '停掉医院开的药改吃偏方', '多买几个疗程'], a: 1, why: '治病要听正规医生的，别信偏方。' },
+        { q: '买保健品前最该做什么？', opts: ['听推销员推荐就买', '咨询医生，和家人商量', '看谁便宜买谁', '马上交定金'], a: 1, why: '买之前先问医生、和家人商量，别冲动。' },
+        { q: '有人上门推销「免费体验、先交押金」，该？', opts: ['交押金体验', '拒绝，别给钱', '请进家里慢慢谈', '把存折给他看'], a: 1, why: '上门推销别轻易给钱，谨防上当。' },
+        { q: '高价「养老投资」承诺高额回报，该？', opts: ['把养老钱投进去', '警惕，先核实再决定', '签合同就没事', '跟着朋友一起投'], a: 1, why: '打着「养老」旗号骗钱的多，务必先核实。' }
+      ]
+    },
+    {
+      id: 'home_safety', ic: '🏠', t: '居家安全', d: '燃气水电，安全第一',
+      qs: [
+        { q: '出门前最该检查什么？', opts: ['燃气、水电、门窗都关好', '电视开到最大声', '门窗全打开通风', '什么都不用管'], a: 0, why: '出门前检查燃气、水电和门窗，更安心。' },
+        { q: '在家闻到煤气味，应该？', opts: ['先开灯看看', '开窗通风，别开灯、别打火', '点根蜡烛照明', '用打火机试漏'], a: 1, why: '先开窗通风，千万别开灯打火，防止爆炸。' },
+        { q: '家里电线老化、插座发烫，该？', opts: ['继续用，没事', '停止使用，请人检修更换', '用胶布缠一缠', '多插几个电器'], a: 1, why: '电线插座发烫有起火风险，要停用检修。' },
+        { q: '晚上睡觉前，燃气灶和电暖器应该？', opts: ['一直开着保暖', '关掉燃气和电源', '开小火即可', '不用管'], a: 1, why: '睡觉前关掉燃气和电暖器，防漏气起火。' },
+        { q: '独自在家，陌生人敲门称「查燃气」，该？', opts: ['马上开门', '先核实身份，别轻易开门', '让他进来坐坐', '把家里情况告诉他'], a: 1, why: '先核实对方身份，必要时联系物业或家人。' },
+        { q: '家里地面有水、湿滑，该？', opts: ['不管它', '及时擦干，防止滑倒', '垫块布就行', '绕开走就行'], a: 1, why: '地面湿滑容易摔倒，要及时擦干。' }
+      ]
+    },
+    {
+      id: 'med_safety', ic: '💊', t: '用药安全', d: '吃药用药，别乱来',
+      qs: [
+        { q: '药盒写着「早晚各一次」，意思是？', opts: ['一天吃两次，早一次晚一次', '一天只吃一次', '想吃就吃', '一周吃一次'], a: 0, why: '「早晚各一次」就是早上一次、晚上一次。' },
+        { q: '忘记吃药，到了下一次吃药时间，该？', opts: ['一次吃双倍补回来', '按说明或问医生，别擅自加倍', '把以前的全补上', '不吃算了'], a: 1, why: '加倍补吃很危险，要按说明或问医生。' },
+        { q: '同时吃好几种药之前，最该？', opts: ['一起吃了就行', '咨询医生或药师', '凭感觉吃', '减半吃'], a: 1, why: '多种药可能冲突，先问医生或药师。' },
+        { q: '药瓶上的说明书看不懂，该？', opts: ['凭感觉吃', '问医生、药师或家人', '照着别人的吃', '随便吃一片'], a: 1, why: '看不懂就问医生、药师或家人，别乱吃。' },
+        { q: '保健品能和药随便一起吃吗？', opts: ['可以，都是补身体的', '不能，可能有冲突，先问医生', '一起吃效果更好', '无所谓'], a: 1, why: '保健品和药可能有冲突，先问医生。' },
+        { q: '药片受潮、变色、过期了，该？', opts: ['洗一洗再吃', '别吃，丢弃或退回', '煮一下再吃', '照常吃'], a: 1, why: '变质的药别吃，安全第一。' }
+      ]
+    },
+    {
+      id: 'travel_safety', ic: '🚌', t: '出行安全', d: '出门在外，安全第一',
+      qs: [
+        { q: '过马路时应该？', opts: ['走斑马线，看红绿灯', '随便穿过去', '低头看手机走', '跟着感觉走'], a: 0, why: '走斑马线、看红绿灯，安全第一。' },
+        { q: '坐公交车，车开动时应？', opts: ['来回走动', '扶好扶手或坐稳', '靠在车门上', '站着玩手机'], a: 1, why: '车开动时扶稳坐好，防止摔倒。' },
+        { q: '雨天路滑，出门应该？', opts: ['照常快走', '穿防滑鞋，慢慢走', '跑着赶路', '穿拖鞋出门'], a: 1, why: '雨天路滑，穿防滑鞋慢慢走。' },
+        { q: '坐车时安全带/扶手应该？', opts: ['不系不扶', '系好安全带，抓好扶手', '随便靠一靠', '让司机别开太快'], a: 1, why: '系好安全带、抓好扶手，更安全。' },
+        { q: '一个人去远地方，出发前该？', opts: ['谁都不告诉', '告诉家人去向和回来的时间', '带够钱就行', '到了再说'], a: 1, why: '出门告诉家人去向和时间，家人放心。' },
+        { q: '走路戴耳机听歌，安全吗？', opts: ['安全，能解闷', '不安全，容易听不到车辆', '只要音量大就行', '在马路上没关系'], a: 1, why: '戴耳机走路听不到车辆，很危险。' }
+      ]
+    },
+    {
+      id: 'fire_safety', ic: '🔥', t: '消防安全', d: '防火逃生，关键时刻',
+      qs: [
+        { q: '发现起火了，第一步该？', opts: ['先抢救财物', '快离开，并拨打 119', '拍视频发朋友圈', '先找水桶'], a: 1, why: '生命最重要，先离开再报警。' },
+        { q: '楼道里堆满杂物，该？', opts: ['留着，方便取用', '清理掉，保持逃生通道畅通', '再堆一些', '不管'], a: 1, why: '楼道是逃生通道，要保持畅通。' },
+        { q: '电器着火了，该？', opts: ['用水浇', '先断电，再用灭火器或盖住', '用手拍灭', '继续使用'], a: 1, why: '先断电再灭火，电器着火别用水浇。' },
+        { q: '着火时能不能坐电梯逃生？', opts: ['能，电梯快', '不能，走楼梯', '看情况', '坐电梯最安全'], a: 1, why: '着火时电梯可能断电困人，要走楼梯。' },
+        { q: '油锅起火了，该？', opts: ['往锅里倒水', '盖上锅盖，关火', '用嘴吹灭', '端着锅跑'], a: 1, why: '盖上锅盖隔绝空气、再关火，别倒水。' },
+        { q: '家里最好常备什么消防用品？', opts: ['灭火器或灭火毯', '什么都不用', '几桶水', '打火机'], a: 0, why: '备个灭火器或灭火毯，关键时候能救命。' }
+      ]
+    }
   ];
 
-  var qi = 0, score = 0, answered = false;
+  var earnedBySet = {};
+  var curIdx = -1, qi = 0, score = 0, answered = false;
+
+  // 载入各套已得分数（封顶 2 分）；即使查询失败也照常渲染选题页
+  (async function loadEarned() {
+    var sb = getSupabase();
+    if (!sb) { renderSetPicker(); return; }
+    var { data, error } = await sb.from('sl_reads').select('quiz_set').eq('resident_id', me.id).eq('section', 'quiz');
+    if (!error) (data || []).forEach(function (r) { earnedBySet[r.quiz_set] = (earnedBySet[r.quiz_set] || 0) + 1; });
+    renderSetPicker();
+  })();
+
+  function setEarned(id) { return Math.min(earnedBySet[id] || 0, 2); }
+
+  function renderSetPicker() {
+    var html = '';
+    QUIZ_SETS.forEach(function (s, i) {
+      var got = setEarned(s.id);
+      var full = got >= 2;
+      html += '<button class="quiz-set' + (full ? ' full' : '') + '" data-idx="' + i + '">' +
+        '<span class="ic">' + s.ic + '</span>' +
+        '<span class="t">' + esc(s.t) + '</span>' +
+        '<span class="d">' + esc(s.d) + '</span>' +
+        '<span class="badge' + (full ? ' full' : '') + '">' + (full ? '已得 2 分' : '已得 ' + got + '/2 分') + '</span>' +
+      '</button>';
+    });
+    $('quizSets').innerHTML = html;
+    $('quizSets').querySelectorAll('.quiz-set').forEach(function (b) {
+      b.addEventListener('click', function () { curIdx = parseInt(b.getAttribute('data-idx'), 10); startSet(); });
+    });
+  }
+
+  function startSet() { qi = 0; score = 0; renderQuiz(); }
 
   function renderQuiz() {
-    var q = QUIZ[qi];
+    var s = QUIZ_SETS[curIdx];
+    var q = s.qs[qi];
     var keys = ['A', 'B', 'C', 'D'];
-    var html = '<div class="bt-progress"><span>第 ' + (qi + 1) + ' / ' + QUIZ.length + ' 题</span><span class="track"><span class="fill" style="width:' + Math.round((qi) / QUIZ.length * 100) + '%"></span></span></div>';
+    var html = '<div class="bt-progress"><span>' + esc(s.t) + ' · 第 ' + (qi + 1) + ' / ' + s.qs.length + ' 题</span><span class="track"><span class="fill" style="width:' + Math.round((qi) / s.qs.length * 100) + '%"></span></span></div>';
     html += '<div class="quiz-q">' + esc(q.q) + '</div>';
     html += q.opts.map(function (o, i) {
       return '<button class="quiz-opt" data-i="' + i + '"><span class="k">' + keys[i] + '</span><span>' + esc(o) + '</span></button>';
@@ -164,7 +292,8 @@
   function answer(i) {
     if (answered) return;
     answered = true;
-    var q = QUIZ[qi];
+    var s = QUIZ_SETS[curIdx];
+    var q = s.qs[qi];
     var opts = $('quizBox').querySelectorAll('.quiz-opt');
     opts.forEach(function (b, k) {
       b.disabled = true;
@@ -176,7 +305,7 @@
     var fb = '<div class="quiz-fb ' + (ok ? 'ok' : 'no') + '">' +
       (ok ? '✅ <b>答对了！</b>' : '❌ <b>再想想，正确答案是 ' + ['A', 'B', 'C', 'D'][q.a] + '。</b>') +
       '<div style="margin-top:6px">' + esc(q.why) + '</div></div>';
-    var last = (qi === QUIZ.length - 1);
+    var last = (qi === s.qs.length - 1);
     fb += '<button class="btn ' + (ok ? 'btn-teal' : 'btn-primary') + ' btn-block btn-lg mt14" id="quizNext">' + (last ? '看结果' : '下一题') + '</button>';
     $('quizFb').innerHTML = fb;
     $('quizNext').addEventListener('click', function () {
@@ -185,19 +314,31 @@
   }
 
   function finishQuiz() {
-    slRecordRead('quiz');
-    slAwardPoints('完成小测试');
-    var msg = score === QUIZ.length ? '太棒了，全都答对！'
-      : (score >= 6 ? '很好，继续保持警惕！' : '再复习一下案例，会更安心。');
-    var html = '<div class="bt-result"><div class="big">' + score + '<small> / ' + QUIZ.length + ' 题</small></div>' +
+    var s = QUIZ_SETS[curIdx];
+    // 立即更新本地已做次数（下次回到选题页时角标正确）
+    earnedBySet[s.id] = (earnedBySet[s.id] || 0) + 1;
+    // 记录本次完成，并判断是否仍计入积分（每套最多 2 分）
+    slRecordRead('quiz', s.id).then(function () {
+      return slSetCount('sl_reads', 'quiz_set', s.id);
+    }).then(function (cnt) {
+      if (cnt <= 2) slAwardPoints('完成「' + s.t + '」');
+      else toast('这套题已计满 2 分，不再加分，谢谢坚持练习！');
+    });
+
+    var msg = score === s.qs.length ? '太棒了，全都答对！'
+      : (score >= s.qs.length - 1 ? '很好，继续保持！' : '再复习一下，会更安心。');
+    var html = '<div class="bt-result"><div class="big">' + score + '<small> / ' + s.qs.length + ' 题</small></div>' +
       '<div class="sub">答对 ' + score + ' 题</div>' +
       '<div class="encourage">' + msg + '</div></div>';
-    html += '<button class="btn btn-teal btn-block btn-lg mt14" id="quizAgain">再测一次</button>';
+    html += '<button class="btn btn-teal btn-block btn-lg mt14" id="quizAgain">再做一次</button>';
+    html += '<button class="btn btn-line btn-block mt8" id="quizSwitch">换一套题</button>';
     $('quizBox').innerHTML = html;
     $('quizAgain').addEventListener('click', function () { qi = 0; score = 0; renderQuiz(); });
+    $('quizSwitch').addEventListener('click', function () {
+      $('quizBox').innerHTML = '<p class="hint">选一套题来做。每套做满 <b>2 次</b>可得 2 分，再多做不加分。</p><div id="quizSets" class="quiz-set-grid"></div>';
+      renderSetPicker();
+    });
   }
-
-  $('quizStart').addEventListener('click', function () { qi = 0; score = 0; renderQuiz(); });
 
   // ============ 求助 ============
   async function askHelp(type, text) {

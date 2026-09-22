@@ -294,6 +294,7 @@ create table if not exists public.sl_reads (
   id uuid primary key default gen_random_uuid(),
   resident_id uuid not null references public.residents(id) on delete cascade,
   section text not null,                 -- 'reminder' | 'cases' | 'quiz'
+  quiz_set text,                         -- section='quiz' 时记录套题 id，如 'fraud_impersonate'
   created_at timestamptz not null default now()
 );
 alter table public.sl_reads enable row level security;

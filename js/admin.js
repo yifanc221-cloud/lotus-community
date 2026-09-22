@@ -690,14 +690,19 @@
   async function archResidents() {
     var { data } = await sb.from('residents').select('id,pin,name,birth_date,created_at').order('created_at', { ascending: true });
     var { data: chk } = await sb.from('checkins').select('resident_id');
+    var { data: quiz } = await sb.from('sl_reads').select('resident_id').eq('section', 'quiz');
+    var { data: trn } = await sb.from('sl_trainings').select('resident_id');
+    var { data: ex } = await sb.from('sl_exercises').select('resident_id');
     var { data: reg } = await sb.from('registrations').select('resident_id');
-    var chkCount = {}, regCount = {};
-    (chk || []).forEach(function (c) { chkCount[c.resident_id] = (chkCount[c.resident_id] || 0) + 1; });
+    var ptsCount = {}, regCount = {};
+    (chk || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
+    (quiz || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
+    (trn || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
+    (ex || []).forEach(function (c) { ptsCount[c.resident_id] = (ptsCount[c.resident_id] || 0) + 1; });
     (reg || []).forEach(function (r) { regCount[r.resident_id] = (regCount[r.resident_id] || 0) + 1; });
-    var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '建档时间', '累计签到·积分', '累计报名次数']];
+    var rows = [['姓名', '手机号后四位', '出生年月日', '年龄', '建档时间', '累计积分', '累计报名次数']];
     (data || []).forEach(function (r) {
-      var n = chkCount[r.id] || 0;
-      rows.push([r.name, r.pin, r.birth_date || '', ageFromBirth(r.birth_date), fmtTime(r.created_at), n, regCount[r.id] || 0]);
+      rows.push([r.name, r.pin, r.birth_date || '', ageFromBirth(r.birth_date), fmtTime(r.created_at), ptsCount[r.id] || 0, regCount[r.id] || 0]);
     });
     exportXLSX('居民档案总表_' + todayStr() + '.xlsx', rows, [12, 12, 14, 8, 20, 14, 14]);
   }

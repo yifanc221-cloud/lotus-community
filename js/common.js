@@ -147,6 +147,26 @@ async function absenceStatus(residentId) {
   return { absence_count: 0, banned_until: null };
 }
 
+// ============================================================
+// 居民总积分 = 签到 + 安心生活训练完成（每完成一整套记 1 分，可重复累计）
+//   签到         checkins      每场活动 1 分
+//   防诈骗小测试  sl_reads(section='quiz')  完成一次 1 分
+//   脑力训练      sl_trainings   练完一轮 1 分
+//   健康运动      sl_exercises   记录一次 1 分
+// ============================================================
+async function getResidentPoints(residentId) {
+  var sb = getSupabase();
+  if (!sb || !residentId) return 0;
+  var opts = { count: 'exact', head: true };
+  var res = await Promise.all([
+    sb.from('checkins').select('*', opts).eq('resident_id', residentId),
+    sb.from('sl_reads').select('*', opts).eq('resident_id', residentId).eq('section', 'quiz'),
+    sb.from('sl_trainings').select('*', opts).eq('resident_id', residentId),
+    sb.from('sl_exercises').select('*', opts).eq('resident_id', residentId)
+  ]);
+  return (res[0].count || 0) + (res[1].count || 0) + (res[2].count || 0) + (res[3].count || 0);
+}
+
 // 获取当前登录工作人员（无则 null）
 async function currentStaff() {
   const sb = getSupabase();

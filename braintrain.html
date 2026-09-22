@@ -71,8 +71,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js?v=20260921"></script>
-<script src="js/safe-life.js?v=20260921"></script>
+<script src="js/common.js?v=20260922"></script>
+<script src="js/safe-life.js?v=20260922"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -257,7 +257,7 @@
       resident_id: me.id, train_type: trainType, difficulty: difficulty,
       correct: score, total: TOTAL, duration_seconds: duration
     });
-    if (error) console.error(error);
+    if (error) console.error(error); else slAwardPoints('完成训练');
   }
 })();
 </script>

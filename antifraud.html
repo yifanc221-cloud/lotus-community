@@ -87,8 +87,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
-<script src="js/common.js?v=20260921"></script>
-<script src="js/safe-life.js?v=20260921"></script>
+<script src="js/common.js?v=20260922"></script>
+<script src="js/safe-life.js?v=20260922"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -186,6 +186,7 @@
 
   function finishQuiz() {
     slRecordRead('quiz');
+    slAwardPoints('完成小测试');
     var msg = score === QUIZ.length ? '太棒了，全都答对！'
       : (score >= 6 ? '很好，继续保持警惕！' : '再复习一下案例，会更安心。');
     var html = '<div class="bt-result"><div class="big">' + score + '<small> / ' + QUIZ.length + ' 题</small></div>' +

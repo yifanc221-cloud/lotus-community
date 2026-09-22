@@ -17,6 +17,11 @@
     if (error) console.error(error);
   };
 
+  // 完成一项训练后提示 +1 积分（完成记录已入库，积分由 common.js getResidentPoints 统一累计）
+  window.slAwardPoints = function (label) {
+    if (window.toast) toast('🎁 ' + (label || '完成训练') + ' +1 积分');
+  };
+
   // 模块页校验：无识别结果则跳回安心生活首页；有则返回居民
   window.slRequire = function () {
     var r = window.slResident();

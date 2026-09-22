@@ -94,9 +94,8 @@
       }
     }
 
-    // 累计活动积分 = 参加活动次数（每场活动 1 积分）
-    var { count: times } = await sb.from('checkins').select('*', { count: 'exact', head: true }).eq('resident_id', resident.id);
-    var pts = times || 1;
+    // 总积分 = 签到 + 安心生活训练完成（每完成一整套记 1 分，可重复累计）
+    var pts = await getResidentPoints(resident.id);
 
     // 积分兑换档位（每档 5 积分，可自行调整）：达到对应积分可在年终兑换礼品
     var TIERS = [5, 10, 15, 20];

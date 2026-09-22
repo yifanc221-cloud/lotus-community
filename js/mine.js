@@ -163,8 +163,8 @@
       $('myCheckins').innerHTML = '<div class="empty"><span class="em-ico">✅</span>暂无签到记录</div>';
     }
 
-    // 积分 = 签到次数
-    renderPoints((chk && chk.length) || 0);
+    // 积分 = 签到 + 安心生活训练完成
+    renderPoints(await getResidentPoints(me.id));
 
     // 出勤情况：缺勤 / 报名暂停
     var ab = await absenceStatus(me.id);
